@@ -1,0 +1,23 @@
+## Visual Studio / .NET
+.vs/
+bin/
+obj/
+*.user
+*.suo
+*.userprefs
+*.DotSettings.user
+[Bb]uild/
+[Rr]elease/
+[Dd]ebug/
+packages/
+*.nupkg
+*.snupkg
+project.lock.json
+project.fragment.lock.json
+artifacts/
+**/Properties/launchSettings.json
+
+## OS
+.DS_Store
+Thumbs.db
+desktop.ini
