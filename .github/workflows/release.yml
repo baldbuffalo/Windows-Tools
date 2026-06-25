@@ -2,9 +2,10 @@ name: Release
 
 on:
   push:
+    branches:
+      - main
     tags:
       - 'v*'
-  workflow_dispatch:
 
 jobs:
   build:
@@ -35,8 +36,8 @@ jobs:
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.ref_name || 'v1.0.0' }}
-          name: Windows Tools ${{ github.ref_name || 'v1.0.0' }}
+          tag_name: latest
+          name: Windows Tools (Latest)
           draft: false
           prerelease: false
           files: ./output/WindowsTools.exe
@@ -48,3 +49,4 @@ jobs:
 
             **Features:**
             - Storage Checker: view all drives, used/free space, color-coded usage bars
+            - Driver Hub: auto-detects CPU/GPU/OEM and installs manufacturer apps via winget
