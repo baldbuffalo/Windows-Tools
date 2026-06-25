@@ -33,6 +33,14 @@ jobs:
             /p:PublishReadyToRun=true `
             -o ./output
 
+      - name: Move latest tag
+        shell: bash
+        run: |
+          git config user.email "actions@github.com"
+          git config user.name "GitHub Actions"
+          git tag -f latest ${{ github.sha }}
+          git push origin -f refs/tags/latest
+
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
