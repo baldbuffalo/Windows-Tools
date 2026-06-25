@@ -10,6 +10,7 @@ public class HardwareDetectionService
         ["nvidia-app"] = new ManufacturerApp
         {
             Id = "nvidia-app", Name = "NVIDIA App", Manufacturer = "NVIDIA", Icon = "🟢",
+            Category = AppCategory.DriverUpdater,
             Description = "GPU drivers, overlay & tuning",
             WingetId = "Nvidia.GeForceExperience",
             ExeSearchPaths = [@"C:\Program Files\NVIDIA Corporation\NVIDIA GeForce Experience\NVIDIA GeForce Experience.exe"]
@@ -17,6 +18,7 @@ public class HardwareDetectionService
         ["amd-software"] = new ManufacturerApp
         {
             Id = "amd-software", Name = "AMD Software: Adrenalin", Manufacturer = "AMD", Icon = "🔴",
+            Category = AppCategory.DriverUpdater,
             Description = "GPU drivers & Adrenalin Edition",
             WingetId = "AdvancedMicroDevices.AMDSoftwareAdrenalinEdition",
             ExeSearchPaths = [@"C:\Program Files\AMD\CNext\CNext\RadeonSoftware.exe"]
@@ -24,6 +26,7 @@ public class HardwareDetectionService
         ["amd-ryzen-master"] = new ManufacturerApp
         {
             Id = "amd-ryzen-master", Name = "AMD Ryzen Master", Manufacturer = "AMD", Icon = "🔴",
+            Category = AppCategory.DriverUpdater,
             Description = "CPU overclocking & monitoring",
             WingetId = "AdvancedMicroDevices.RyzenMaster",
             ExeSearchPaths = [@"C:\Program Files\AMD\RyzenMaster\RyzenMaster.exe"]
@@ -31,6 +34,7 @@ public class HardwareDetectionService
         ["intel-dsa"] = new ManufacturerApp
         {
             Id = "intel-dsa", Name = "Intel Driver & Support", Manufacturer = "Intel", Icon = "🔵",
+            Category = AppCategory.DriverUpdater,
             Description = "Automatic driver updates",
             WingetId = "Intel.IntelDriverAndSupportAssistant",
             ExeSearchPaths =
@@ -42,6 +46,7 @@ public class HardwareDetectionService
         ["intel-arc"] = new ManufacturerApp
         {
             Id = "intel-arc", Name = "Intel Arc Control", Manufacturer = "Intel", Icon = "🔵",
+            Category = AppCategory.DriverUpdater,
             Description = "Intel GPU drivers & tuning",
             WingetId = "Intel.ArcControl",
             ExeSearchPaths = [@"C:\Program Files\Intel\Intel(R) Arc Control\ArcControl.exe"]

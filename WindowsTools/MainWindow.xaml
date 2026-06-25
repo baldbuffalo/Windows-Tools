@@ -188,27 +188,22 @@
                                     </StackPanel>
                                 </Button>
 
-                                <!-- YOUR APPS — dynamically populated after OEM installs -->
-                                <StackPanel x:Name="YourAppsSection">
-                                    <Rectangle Height="1" Fill="{StaticResource BorderBrush}" Margin="16,12,16,0"/>
-                                    <TextBlock Text="YOUR APPS" FontSize="10" FontWeight="SemiBold"
-                                               Foreground="{StaticResource TextMutedBrush}" Margin="24,10,0,4"/>
-                                    <ItemsControl x:Name="InstalledAppsList">
-                                        <ItemsControl.ItemTemplate>
-                                            <DataTemplate>
-                                                <Button Style="{StaticResource OemAppButtonStyle}"
-                                                        Command="{Binding LaunchCommand}">
-                                                    <StackPanel Orientation="Horizontal">
-                                                        <TextBlock Text="{Binding Icon}" FontSize="14" VerticalAlignment="Center"/>
-                                                        <TextBlock Text="{Binding Name}" FontSize="13"
-                                                                   Margin="9,0,0,0" VerticalAlignment="Center"
-                                                                   TextTrimming="CharacterEllipsis" MaxWidth="130"/>
-                                                    </StackPanel>
-                                                </Button>
-                                            </DataTemplate>
-                                        </ItemsControl.ItemTemplate>
-                                    </ItemsControl>
-                                </StackPanel>
+                                <!-- Installed apps injected directly into nav (no header) -->
+                                <ItemsControl x:Name="InstalledAppsList">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Button Style="{StaticResource OemAppButtonStyle}"
+                                                    Command="{Binding LaunchCommand}">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="{Binding DisplayIcon}" FontSize="14" VerticalAlignment="Center"/>
+                                                    <TextBlock Text="{Binding DisplayName}" FontSize="13"
+                                                               Margin="9,0,0,0" VerticalAlignment="Center"
+                                                               TextTrimming="CharacterEllipsis" MaxWidth="130"/>
+                                                </StackPanel>
+                                            </Button>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
                             </StackPanel>
                         </ScrollViewer>
 

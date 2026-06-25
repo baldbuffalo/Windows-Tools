@@ -10,6 +10,13 @@ public class InstalledAppEntry
     public string Icon { get; set; } = string.Empty;
     public string? LaunchPath { get; set; }
     public string? ShellLaunchArg { get; set; }
+    public AppCategory Category { get; set; } = AppCategory.OemSuite;
+
+    [JsonIgnore]
+    public string DisplayName => Category == AppCategory.DriverUpdater ? "Driver Updater" : Name;
+
+    [JsonIgnore]
+    public string DisplayIcon => Category == AppCategory.DriverUpdater ? "🔄" : Icon;
 
     [JsonIgnore]
     public RelayCommand LaunchCommand => new(() =>

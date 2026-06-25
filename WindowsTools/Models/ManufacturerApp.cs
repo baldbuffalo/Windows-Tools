@@ -1,7 +1,10 @@
 namespace WindowsTools.Models;
 
+public enum AppCategory { DriverUpdater, OemSuite }
+
 public class ManufacturerApp
 {
+    public AppCategory Category { get; set; } = AppCategory.OemSuite;
     public string Id { get; set; } = string.Empty;
     public string Name { get; set; } = string.Empty;
     public string Manufacturer { get; set; } = string.Empty;

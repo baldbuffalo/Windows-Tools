@@ -15,13 +15,6 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         InstalledAppsList.ItemsSource = _settings.InstalledApps;
-        _settings.InstalledApps.CollectionChanged += (_, _) =>
-            YourAppsSection.Visibility = _settings.InstalledApps.Count > 0
-                ? Visibility.Visible : Visibility.Collapsed;
-
-        YourAppsSection.Visibility = _settings.InstalledApps.Count > 0
-            ? Visibility.Visible : Visibility.Collapsed;
-
         SetActive(StorageNavButton);
     }
 

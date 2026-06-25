@@ -32,6 +32,7 @@ public class AppInstallService(SettingsService settings)
             Id = app.Id,
             Name = app.Name,
             Icon = app.Icon,
+            Category = app.Category,
             LaunchPath = exePath,
             ShellLaunchArg = app.ShellLaunchArg
         };
