@@ -84,16 +84,8 @@
         <Grid Grid.Row="2">
             <TextBlock Text="Click 'Scan Hardware' to detect your system"
                        FontSize="15" Foreground="{StaticResource TextMutedBrush}"
-                       HorizontalAlignment="Center" VerticalAlignment="Center">
-                <TextBlock.Visibility>
-                    <MultiBinding>
-                        <MultiBinding.Converter>
-                            <conv:BoolToVisibilityConverter/>
-                        </MultiBinding.Converter>
-                        <Binding Path="IsScanning"/>
-                    </MultiBinding>
-                </TextBlock.Visibility>
-            </TextBlock>
+                       HorizontalAlignment="Center" VerticalAlignment="Center"
+                       Visibility="{Binding HasResults, Converter={StaticResource InverseBoolToVisibility}}"/>
 
             <ScrollViewer VerticalScrollBarVisibility="Auto">
                 <StackPanel>
