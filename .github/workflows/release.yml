@@ -27,12 +27,8 @@ jobs:
             -c Release `
             -r win-x64 `
             --self-contained true `
-            /p:PublishSingleFile=false `
             /p:PublishReadyToRun=true `
             -o ./output
-
-      - name: Zip output
-        run: Compress-Archive -Path ./output/* -DestinationPath ./WindowsTools.zip
 
       - name: Move latest tag
         shell: bash
@@ -57,18 +53,15 @@ jobs:
           name: Windows Tools (Latest)
           draft: false
           prerelease: false
-          files: ./WindowsTools.zip
+          files: ./output/WindowsTools.exe
           generate_release_notes: false
           body: |
             ## Windows Tools
 
-            Self-contained app — no .NET install required.
+            Self-contained single EXE — no .NET install required, no extraction needed.
 
-            **Install:** download `WindowsTools.zip`, extract the folder, run `WindowsTools.exe` inside it.
-
-            > Distributed as a folder zip (not a single .exe) so Windows Defender
-            > doesn't flag it — single-file .NET apps trigger a known false positive.
+            **Install:** download `WindowsTools.exe` and run it directly.
 
             **Features:**
             - Storage Checker: view all drives, used/free space, color-coded usage bars
-            - Driver Hub: auto-detects CPU/GPU/OEM and installs manufacturer apps via winget
+            - Driver Hub: auto-detects CPU/GPU/OEM and installs manufacturer apps silently

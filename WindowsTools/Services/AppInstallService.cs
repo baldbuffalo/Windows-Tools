@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.IO;
+using System.Net.Http;
 using WindowsTools.Models;
 
 namespace WindowsTools.Services;
@@ -17,7 +18,7 @@ public class AppInstallService(SettingsService settings)
     {
         progress.Report("Starting installation...");
 
-        var result = await RunWingetAsync(app.WingetId, ct);
+        var result = await RunInstallAsync(app, progress, ct);
         if (!result.success)
             return (false, null, result.error);
 
@@ -56,6 +57,89 @@ public class AppInstallService(SettingsService settings)
                 Process.Start(new ProcessStartInfo { FileName = exe, UseShellExecute = true });
         }
         catch { }
+    }
+
+    private static async Task<(bool success, string? error)> RunInstallAsync(
+        ManufacturerApp app, IProgress<string> progress, CancellationToken ct)
+    {
+        // Try winget first
+        if (IsWingetAvailable())
+        {
+            progress.Report("Installing via winget...");
+            return await RunWingetAsync(app.WingetId, ct);
+        }
+
+        // Winget missing — try to install it
+        progress.Report("Windows Package Manager not found. Installing it...");
+        if (await TryInstallWingetAsync(progress, ct))
+        {
+            progress.Report("Installing via winget...");
+            return await RunWingetAsync(app.WingetId, ct);
+        }
+
+        // Last resort: open the manufacturer download page
+        if (!string.IsNullOrEmpty(app.DownloadPageUrl))
+        {
+            progress.Report("Opening download page in browser...");
+            Process.Start(new ProcessStartInfo { FileName = app.DownloadPageUrl, UseShellExecute = true });
+            return (false, "Windows Package Manager could not be installed automatically. " +
+                          "The download page has been opened in your browser.");
+        }
+
+        return (false, "Windows Package Manager (winget) is not available on this system. " +
+                       "Please install it from the Microsoft Store (App Installer).");
+    }
+
+    private static bool IsWingetAvailable()
+    {
+        try
+        {
+            var p = Process.Start(new ProcessStartInfo
+            {
+                FileName = "winget",
+                Arguments = "--version",
+                UseShellExecute = false,
+                CreateNoWindow = true,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true
+            });
+            p?.WaitForExit();
+            return p?.ExitCode == 0;
+        }
+        catch { return false; }
+    }
+
+    private static async Task<bool> TryInstallWingetAsync(IProgress<string> progress, CancellationToken ct)
+    {
+        try
+        {
+            const string url = "https://github.com/microsoft/winget-cli/releases/latest/download/Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle";
+            var path = Path.Combine(Path.GetTempPath(), "WindowsTools", "AppInstaller.msixbundle");
+            Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+
+            progress.Report("Downloading Windows Package Manager...");
+            using var http = new HttpClient();
+            http.DefaultRequestHeaders.Add("User-Agent", "WindowsTools/1.0");
+            var data = await http.GetByteArrayAsync(url, ct);
+            await File.WriteAllBytesAsync(path, data, ct);
+
+            progress.Report("Applying package...");
+            var psi = new ProcessStartInfo
+            {
+                FileName = "powershell",
+                Arguments = $"-NonInteractive -Command \"Add-AppxPackage -Path '{path}'\"",
+                UseShellExecute = false,
+                CreateNoWindow = true,
+                RedirectStandardError = true
+            };
+            using var proc = Process.Start(psi)!;
+            await proc.WaitForExitAsync(ct);
+
+            try { File.Delete(path); } catch { }
+
+            return IsWingetAvailable();
+        }
+        catch { return false; }
     }
 
     private static async Task<(bool success, string? error)> RunWingetAsync(string wingetId, CancellationToken ct)

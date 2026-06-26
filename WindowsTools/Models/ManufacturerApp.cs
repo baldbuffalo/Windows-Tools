@@ -13,4 +13,5 @@ public class ManufacturerApp
     public string WingetId { get; set; } = string.Empty;
     public string[] ExeSearchPaths { get; set; } = [];
     public string? ShellLaunchArg { get; set; }
+    public string? DownloadPageUrl { get; set; }
 }

@@ -13,6 +13,7 @@ public class HardwareDetectionService
             Category = AppCategory.DriverUpdater,
             Description = "GPU drivers, overlay & tuning",
             WingetId = "Nvidia.GeForceExperience",
+            DownloadPageUrl = "https://www.nvidia.com/en-us/software/nvidia-app/",
             ExeSearchPaths = [@"C:\Program Files\NVIDIA Corporation\NVIDIA GeForce Experience\NVIDIA GeForce Experience.exe"]
         },
         ["amd-software"] = new ManufacturerApp
@@ -21,6 +22,7 @@ public class HardwareDetectionService
             Category = AppCategory.DriverUpdater,
             Description = "GPU drivers & Adrenalin Edition",
             WingetId = "AdvancedMicroDevices.AMDSoftwareAdrenalinEdition",
+            DownloadPageUrl = "https://www.amd.com/en/support/download/drivers.html",
             ExeSearchPaths = [@"C:\Program Files\AMD\CNext\CNext\RadeonSoftware.exe"]
         },
         ["amd-ryzen-master"] = new ManufacturerApp
@@ -29,6 +31,7 @@ public class HardwareDetectionService
             Category = AppCategory.DriverUpdater,
             Description = "CPU overclocking & monitoring",
             WingetId = "AdvancedMicroDevices.RyzenMaster",
+            DownloadPageUrl = "https://www.amd.com/en/technologies/ryzen-master",
             ExeSearchPaths = [@"C:\Program Files\AMD\RyzenMaster\RyzenMaster.exe"]
         },
         ["intel-dsa"] = new ManufacturerApp
@@ -37,6 +40,7 @@ public class HardwareDetectionService
             Category = AppCategory.DriverUpdater,
             Description = "Automatic driver updates",
             WingetId = "Intel.IntelDriverAndSupportAssistant",
+            DownloadPageUrl = "https://www.intel.com/content/www/us/en/support/detect.html",
             ExeSearchPaths =
             [
                 @"C:\Program Files (x86)\Intel Driver and Support Assistant\DSATray.exe",
@@ -49,6 +53,7 @@ public class HardwareDetectionService
             Category = AppCategory.DriverUpdater,
             Description = "Intel GPU drivers & tuning",
             WingetId = "Intel.ArcControl",
+            DownloadPageUrl = "https://www.intel.com/content/www/us/en/products/docs/discrete-gpus/arc/software.html",
             ExeSearchPaths = [@"C:\Program Files\Intel\Intel(R) Arc Control\ArcControl.exe"]
         },
         ["lenovo-vantage"] = new ManufacturerApp
@@ -56,6 +61,7 @@ public class HardwareDetectionService
             Id = "lenovo-vantage", Name = "Lenovo Vantage", Manufacturer = "Lenovo", Icon = "🖥",
             Description = "System health, drivers & settings",
             WingetId = "9WZDNCRFJ4MV",
+            DownloadPageUrl = "https://www.lenovo.com/us/en/software/vantage",
             ShellLaunchArg = "lenovo-vantage:"
         },
         ["dell-supportassist"] = new ManufacturerApp
@@ -63,6 +69,7 @@ public class HardwareDetectionService
             Id = "dell-supportassist", Name = "Dell SupportAssist", Manufacturer = "Dell", Icon = "🖥",
             Description = "System health & automatic drivers",
             WingetId = "Dell.SupportAssist",
+            DownloadPageUrl = "https://www.dell.com/support/contents/en-us/article/product-support/self-support-knowledgebase/software-and-downloads/support-assist",
             ExeSearchPaths = [@"C:\Program Files\Dell\SupportAssistAgent\bin\SupportAssist.exe"]
         },
         ["hp-support"] = new ManufacturerApp
@@ -70,6 +77,7 @@ public class HardwareDetectionService
             Id = "hp-support", Name = "HP Support Assistant", Manufacturer = "HP", Icon = "🖥",
             Description = "System health & driver updates",
             WingetId = "HP.HPSupportAssistant",
+            DownloadPageUrl = "https://support.hp.com/us-en/topic/hp-support-assistant",
             ExeSearchPaths =
             [
                 @"C:\Program Files (x86)\Hewlett-Packard\HP Support Framework\HPSF.exe",
@@ -81,6 +89,7 @@ public class HardwareDetectionService
             Id = "asus-myasus", Name = "MyASUS", Manufacturer = "ASUS", Icon = "🖥",
             Description = "System health, drivers & settings",
             WingetId = "ASUS.MyASUS",
+            DownloadPageUrl = "https://www.asus.com/support/",
             ShellLaunchArg = "myasus:"
         },
         ["msi-center"] = new ManufacturerApp
@@ -88,6 +97,7 @@ public class HardwareDetectionService
             Id = "msi-center", Name = "MSI Center", Manufacturer = "MSI", Icon = "🖥",
             Description = "System tuning, drivers & lighting",
             WingetId = "MSI.MSICenter",
+            DownloadPageUrl = "https://www.msi.com/Landing/MSI-Center",
             ShellLaunchArg = "msi-center:"
         },
         ["acer-care"] = new ManufacturerApp
@@ -95,6 +105,7 @@ public class HardwareDetectionService
             Id = "acer-care", Name = "Acer Care Center", Manufacturer = "Acer", Icon = "🖥",
             Description = "System health & driver updates",
             WingetId = "Acer.AcerCareCenter",
+            DownloadPageUrl = "https://www.acer.com/us-en/support",
             ExeSearchPaths = [@"C:\Program Files (x86)\Acer\Care Center\Care Center.exe"]
         },
     };
