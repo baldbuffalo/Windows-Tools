@@ -37,29 +37,43 @@ public static class InstallerService
     }
 
     /// <summary>
-    /// Installs (or updates) this exe to the permanent location and creates
-    /// shortcuts. Returns the installed exe path on success, null on failure.
+    /// Copies this exe into the permanent install folder.
+    /// Returns true on success.
     /// </summary>
-    public static string? Install()
+    public static bool CopyExe()
     {
         try
         {
             var source = Environment.ProcessPath
                 ?? Process.GetCurrentProcess().MainModule?.FileName;
-            if (source is null) return null;
+            if (source is null) return false;
 
             Directory.CreateDirectory(InstallDir);
             File.Copy(source, InstallExePath, overwrite: true);
-
-            CreateShortcut(DesktopShortcutPath, InstallExePath);
-            CreateShortcut(StartMenuShortcutPath, InstallExePath);
-
-            return InstallExePath;
+            return true;
         }
         catch
         {
-            return null;
+            return false;
         }
+    }
+
+    /// <summary>Creates the desktop and Start Menu shortcuts.</summary>
+    public static void CreateShortcuts()
+    {
+        CreateShortcut(DesktopShortcutPath, InstallExePath);
+        CreateShortcut(StartMenuShortcutPath, InstallExePath);
+    }
+
+    /// <summary>
+    /// Convenience: copy + shortcuts in one call (used as a silent fallback).
+    /// Returns the installed exe path on success, null on failure.
+    /// </summary>
+    public static string? Install()
+    {
+        if (!CopyExe()) return null;
+        CreateShortcuts();
+        return InstallExePath;
     }
 
     /// <summary>Launches the installed copy in a new process.</summary>
