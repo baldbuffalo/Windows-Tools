@@ -2,6 +2,7 @@ using System.IO;
 using System.Text;
 using System.Windows;
 using System.Windows.Threading;
+using WindowsTools.Services;
 
 namespace WindowsTools;
 
@@ -16,6 +17,35 @@ public partial class App : Application
         DispatcherUnhandledException += OnDispatcherUnhandledException;
         AppDomain.CurrentDomain.UnhandledException += OnDomainUnhandledException;
         TaskScheduler.UnobservedTaskException += (_, e) => Log(e.Exception, "UnobservedTask");
+    }
+
+    protected override void OnStartup(StartupEventArgs e)
+    {
+        base.OnStartup(e);
+
+        // When launched from outside the install folder (e.g. Downloads),
+        // behave like an installer: copy ourselves in, add a desktop shortcut,
+        // launch the installed copy, then exit this one.
+        if (!InstallerService.IsRunningInstalled())
+        {
+            var installed = InstallerService.Install();
+            if (installed is not null)
+            {
+                MessageBox.Show(
+                    $"{InstallerService.AppDisplayName} has been installed.\n\n" +
+                    "A shortcut was added to your desktop. The app will now open.",
+                    InstallerService.AppDisplayName,
+                    MessageBoxButton.OK, MessageBoxImage.Information);
+
+                InstallerService.LaunchInstalled();
+                Shutdown(0);
+                return;
+            }
+            // Install failed (e.g. no write access) — fall through and just run.
+        }
+
+        var window = new MainWindow();
+        window.Show();
     }
 
     private void OnDispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)

@@ -60,7 +60,8 @@ jobs:
 
             Self-contained single EXE — no .NET install required, no extraction needed.
 
-            **Install:** download `WindowsTools.exe` and run it directly.
+            **Install:** download `WindowsTools.exe` and run it. It installs itself
+            and adds a **shortcut to your desktop**, then opens automatically.
 
             **Features:**
             - Storage Checker: view all drives, used/free space, color-coded usage bars
