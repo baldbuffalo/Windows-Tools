@@ -5,16 +5,19 @@ using System.Windows.Media;
 
 namespace WindowsTools.Converters;
 
-public class PercentToWidthConverter : IMultiValueConverter
+public class PercentToStarConverter : IValueConverter
 {
-    public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
+    // parameter "remainder" returns (100 - percent) as star sizing; otherwise returns percent.
+    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
-        if (values.Length == 2 && values[0] is double percent && values[1] is double totalWidth)
-            return totalWidth * (percent / 100.0);
-        return 0.0;
+        var percent = value is double d ? d : 0.0;
+        var isRemainder = parameter as string == "remainder";
+        var stars = isRemainder ? 100.0 - percent : percent;
+        if (stars < 0) stars = 0;
+        return new GridLength(stars, GridUnitType.Star);
     }
 
-    public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         => throw new NotImplementedException();
 }
 

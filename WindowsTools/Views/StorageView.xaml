@@ -6,6 +6,7 @@
 
     <UserControl.Resources>
         <conv:PercentToColorConverter x:Key="PercentToColor"/>
+        <conv:PercentToStarConverter x:Key="PercentToStar"/>
         <conv:BoolToVisibilityConverter x:Key="BoolToVisibility"/>
         <conv:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibility"/>
     </UserControl.Resources>
@@ -204,22 +205,17 @@
                                     <Border Grid.Row="2"
                                             Height="8"
                                             Background="#FF333333"
-                                            CornerRadius="4">
+                                            CornerRadius="4"
+                                            ClipToBounds="True">
                                         <Grid>
-                                            <Border HorizontalAlignment="Left"
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="{Binding UsedPercent, Converter={StaticResource PercentToStar}}"/>
+                                                <ColumnDefinition Width="{Binding UsedPercent, Converter={StaticResource PercentToStar}, ConverterParameter=remainder}"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Border Grid.Column="0"
                                                     Height="8"
                                                     CornerRadius="4"
-                                                    Background="{Binding UsedPercent, Converter={StaticResource PercentToColor}}">
-                                                <Border.Width>
-                                                    <MultiBinding>
-                                                        <MultiBinding.Converter>
-                                                            <conv:PercentToWidthConverter/>
-                                                        </MultiBinding.Converter>
-                                                        <Binding Path="UsedPercent"/>
-                                                        <Binding RelativeSource="{RelativeSource AncestorType=Border}" Path="ActualWidth"/>
-                                                    </MultiBinding>
-                                                </Border.Width>
-                                            </Border>
+                                                    Background="{Binding UsedPercent, Converter={StaticResource PercentToColor}}"/>
                                         </Grid>
                                     </Border>
 
