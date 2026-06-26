@@ -185,9 +185,9 @@
                                         <StackPanel Grid.Column="3" VerticalAlignment="Center" HorizontalAlignment="Right">
                                             <TextBlock FontSize="13" Foreground="{StaticResource TextPrimaryBrush}"
                                                        HorizontalAlignment="Right">
-                                                <Run Text="{Binding UsedSpaceFormatted}"/>
+                                                <Run Text="{Binding UsedSpaceFormatted, Mode=OneWay}"/>
                                                 <Run Text=" / " Foreground="{StaticResource TextMutedBrush}"/>
-                                                <Run Text="{Binding TotalSizeFormatted}" Foreground="{StaticResource TextMutedBrush}"/>
+                                                <Run Text="{Binding TotalSizeFormatted, Mode=OneWay}" Foreground="{StaticResource TextMutedBrush}"/>
                                             </TextBlock>
                                             <TextBlock HorizontalAlignment="Right" Margin="0,3,0,0">
                                                 <Run Text="{Binding UsedPercent, StringFormat={}{0:F1}}"
@@ -231,7 +231,7 @@
                                                     VerticalAlignment="Center" Margin="0,0,6,0"/>
                                             <TextBlock FontSize="12" Foreground="{StaticResource TextMutedBrush}">
                                                 <Run Text="Used: "/>
-                                                <Run Text="{Binding UsedSpaceFormatted}" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                                <Run Text="{Binding UsedSpaceFormatted, Mode=OneWay}" Foreground="{StaticResource TextSecondaryBrush}"/>
                                             </TextBlock>
                                         </StackPanel>
                                         <StackPanel Grid.Column="1" Orientation="Horizontal">
@@ -240,7 +240,7 @@
                                                     VerticalAlignment="Center" Margin="0,0,6,0"/>
                                             <TextBlock FontSize="12" Foreground="{StaticResource TextMutedBrush}">
                                                 <Run Text="Free: "/>
-                                                <Run Text="{Binding FreeSpaceFormatted}" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                                <Run Text="{Binding FreeSpaceFormatted, Mode=OneWay}" Foreground="{StaticResource TextSecondaryBrush}"/>
                                             </TextBlock>
                                         </StackPanel>
                                     </Grid>
