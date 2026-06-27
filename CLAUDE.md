@@ -14,6 +14,8 @@ Minimize tokens while staying accurate and using correct project context.
 
 ## Execution style
 - Act directly and silently.
+- Do all thinking/working silently — no narration while executing.
+- Only AFTER finishing, give one short summary of what was added/fixed.
 - Prefer immediate fixes over analysis.
 - Do not explore multiple solutions unless necessary.
 - Do not re-check already known information.
