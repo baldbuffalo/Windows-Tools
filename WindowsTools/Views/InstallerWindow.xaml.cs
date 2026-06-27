@@ -18,91 +18,122 @@ public partial class InstallerWindow : Window
     ];
 
     private readonly SettingsService _settings = new();
+    private int _current = -1;
+    private bool _busy;
+    private List<ManufacturerApp> _apps = [];
 
     public InstallerWindow()
     {
         InitializeComponent();
         StepsList.ItemsSource = _steps;
         Progress.ValueChanged += (_, e) => PercentText.Text = $"{(int)e.NewValue}%";
-        Loaded += OnLoaded;
+        Loaded += async (_, _) => await GoToStep(0);
     }
 
-    private async void OnLoaded(object sender, RoutedEventArgs e)
+    private async void NextButton_Click(object sender, RoutedEventArgs e)
     {
-        // Step 1 — install the app + desktop shortcut.
-        Begin(0, "Installing application", "Copying Windows Tools and creating a desktop shortcut...");
-        var copied = await Task.Run(InstallerService.CopyExe);
-        await Task.Run(InstallerService.CreateShortcuts);
-        await AnimateTo(25, TimeSpan.FromMilliseconds(700));
-        if (!copied)
+        if (_busy) return;
+        if (_current >= _steps.Count - 1)
         {
-            // Couldn't install — just run from here.
-            StatusText.Text = "Couldn't install — starting in place...";
-            await Task.Delay(900);
-            new MainWindow().Show();
-            Close();
+            InstallerService.LaunchInstalled();
+            Application.Current.Shutdown(0);
             return;
         }
-        Done(0);
+        await GoToStep(_current + 1);
+    }
 
-        // Step 2 — detect hardware / manufacturer.
-        Begin(1, "Detecting your hardware", "Checking your CPU, GPU and PC manufacturer...");
+    private async Task GoToStep(int index)
+    {
+        _current = index;
+        for (var i = 0; i < _steps.Count; i++)
+            _steps[i].State = i < index ? StepState.Done : i == index ? StepState.Active : StepState.Pending;
+
+        SetBusy(true);
+        NextButton.Content = index >= _steps.Count - 1 ? "Finish" : "Next";
+
+        switch (index)
+        {
+            case 0: await DoInstallStep(); break;
+            case 1: await DoDetectStep(); break;
+            case 2: await DoDriverStep(); break;
+            case 3: DoFinishStep(); break;
+        }
+
+        _steps[index].State = StepState.Done;
+        if (index == _steps.Count - 1) _steps[index].State = StepState.Active;
+        SetBusy(false);
+    }
+
+    private async Task DoInstallStep()
+    {
+        StepTitle.Text = "Installing application";
+        StatusText.Text = "Copying Windows Tools and creating a desktop shortcut...";
+        var copied = await Task.Run(InstallerService.CopyExe);
+        await Task.Run(InstallerService.CreateShortcuts);
+        await AnimateTo(100, TimeSpan.FromMilliseconds(600));
+        StatusText.Text = copied
+            ? "Windows Tools was installed and a desktop shortcut was created."
+            : "Couldn't copy to the install folder — the app will run in place.";
+    }
+
+    private async Task DoDetectStep()
+    {
+        StepTitle.Text = "Detecting your hardware";
+        StatusText.Text = "Checking your CPU, GPU and PC manufacturer...";
+        Progress.BeginAnimation(RangeBase.ValueProperty, null);
+        Progress.Value = 0;
+
         var detection = new HardwareDetectionService();
         var (hardware, apps) = await Task.Run(detection.Detect);
-        var mfr = string.Join(", ", hardware.Select(h => h.Name).Where(n => !string.IsNullOrWhiteSpace(n)));
-        StatusText.Text = string.IsNullOrWhiteSpace(mfr)
-            ? "Hardware detected."
-            : $"Detected:\n{string.Join("\n", hardware.Select(h => $"{h.Icon}  {h.Name}"))}";
-        await AnimateTo(50, TimeSpan.FromMilliseconds(700));
-        Done(1);
+        _apps = apps;
 
-        // Step 3 — install the matching driver updater app(s), normally (with UAC).
-        Begin(2, "Installing driver updater app",
-            "Installing the app for your hardware. Approve the Windows prompt if it appears...");
-        if (apps.Count == 0)
+        await AnimateTo(100, TimeSpan.FromMilliseconds(600));
+        StatusText.Text = hardware.Count == 0
+            ? "Hardware detected."
+            : "Detected:\n" + string.Join("\n", hardware.Select(h => $"{h.Icon}  {h.Name}"));
+    }
+
+    private async Task DoDriverStep()
+    {
+        StepTitle.Text = "Installing driver updater app";
+        Progress.BeginAnimation(RangeBase.ValueProperty, null);
+        Progress.Value = 0;
+
+        if (_apps.Count == 0)
         {
             StatusText.Text = "No manufacturer driver app is needed for this system.";
-            await AnimateTo(90, TimeSpan.FromMilliseconds(600));
+            await AnimateTo(100, TimeSpan.FromMilliseconds(500));
+            return;
         }
-        else
+
+        var install = new AppInstallService(_settings);
+        var step = 100.0 / _apps.Count;
+        var pct = 0.0;
+        foreach (var app in _apps)
         {
-            var install = new AppInstallService(_settings);
-            var step = 40.0 / apps.Count;
-            var basePct = 50.0;
-            foreach (var app in apps)
-            {
-                var progress = new Progress<string>(s =>
-                    StatusText.Text = $"{app.Name}\n{s}\n\n(Approve the Windows prompt if it appears.)");
-                await install.InstallAsync(app, progress, CancellationToken.None);
-                basePct += step;
-                await AnimateTo(basePct, TimeSpan.FromMilliseconds(300));
-            }
+            var progress = new Progress<string>(s =>
+                StatusText.Text = $"{app.Name}\n{s}\n\n(Approve the Windows prompt if it appears.)");
+            await install.InstallAsync(app, progress, CancellationToken.None);
+            pct += step;
+            await AnimateTo(pct, TimeSpan.FromMilliseconds(300));
         }
-        Done(2);
-
-        // Step 4 — finished.
-        Begin(3, "Setup complete", "Windows Tools is installed. A shortcut was added to your desktop.");
-        await AnimateTo(100, TimeSpan.FromMilliseconds(500));
-        Done(3);
-        FinishButton.Visibility = Visibility.Visible;
+        StatusText.Text = "Driver updater app installed.";
     }
 
-    private void FinishButton_Click(object sender, RoutedEventArgs e)
+    private void DoFinishStep()
     {
-        InstallerService.LaunchInstalled();
-        Application.Current.Shutdown(0);
+        StepTitle.Text = "Setup complete";
+        StatusText.Text = "Windows Tools is ready. Click Finish to open it.";
+        Progress.BeginAnimation(RangeBase.ValueProperty, null);
+        Progress.Value = 100;
     }
 
-    private void Begin(int index, string title, string status)
+    private void SetBusy(bool busy)
     {
-        for (var i = 0; i < _steps.Count; i++)
-            if (i < index) _steps[i].State = StepState.Done;
-        _steps[index].State = StepState.Active;
-        StepTitle.Text = title;
-        StatusText.Text = status;
+        _busy = busy;
+        NextButton.IsEnabled = !busy;
+        NextButton.Opacity = busy ? 0.5 : 1.0;
     }
-
-    private void Done(int index) => _steps[index].State = StepState.Done;
 
     private Task AnimateTo(double target, TimeSpan duration)
     {

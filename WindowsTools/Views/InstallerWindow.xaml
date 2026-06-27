@@ -95,11 +95,11 @@
             <Grid Grid.Row="3" Margin="0,16,0,0">
                 <TextBlock x:Name="PercentText" Text="0%" FontSize="11" Foreground="#FF909090"
                            VerticalAlignment="Center"/>
-                <Button x:Name="FinishButton" Content="Finish" Width="110" Height="32"
-                        HorizontalAlignment="Right" Visibility="Collapsed"
+                <Button x:Name="NextButton" Content="Next" Width="110" Height="32"
+                        HorizontalAlignment="Right"
                         Background="#FF3DA63D" Foreground="White" BorderThickness="0"
                         Cursor="Hand" FontSize="13" FontWeight="SemiBold"
-                        Click="FinishButton_Click"/>
+                        Click="NextButton_Click"/>
             </Grid>
         </Grid>
     </Grid>
