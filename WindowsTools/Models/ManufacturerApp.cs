@@ -14,4 +14,7 @@ public class ManufacturerApp
     public string[] ExeSearchPaths { get; set; } = [];
     public string? ShellLaunchArg { get; set; }
     public string? DownloadPageUrl { get; set; }
+    // Direct link to the vendor's installer .exe. When set, it's downloaded and
+    // run directly (real installer UI + UAC) instead of going through winget.
+    public string? DirectInstallerUrl { get; set; }
 }

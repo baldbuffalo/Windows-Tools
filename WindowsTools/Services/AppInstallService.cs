@@ -62,6 +62,15 @@ public class AppInstallService(SettingsService settings)
     private static async Task<(bool success, string? error)> RunInstallAsync(
         ManufacturerApp app, IProgress<string> progress, CancellationToken ct)
     {
+        // Preferred: download the vendor installer and run it directly so the
+        // real installer UI and UAC prompt appear (no winget dependency).
+        if (!string.IsNullOrEmpty(app.DirectInstallerUrl))
+        {
+            var direct = await RunDirectInstallerAsync(app.DirectInstallerUrl, progress, ct);
+            if (direct.success) return direct;
+            // fall through to winget if the direct download failed
+        }
+
         // Make sure winget is present (install it if missing).
         if (!IsWingetAvailable())
         {
@@ -76,6 +85,37 @@ public class AppInstallService(SettingsService settings)
 
         // winget couldn't install it — fall back to the manufacturer's page.
         return OpenPageFallback(app, $"Automatic install failed ({result.error}).");
+    }
+
+    private static async Task<(bool success, string? error)> RunDirectInstallerAsync(
+        string url, IProgress<string> progress, CancellationToken ct)
+    {
+        try
+        {
+            progress.Report("Downloading the installer...");
+            var path = Path.Combine(Path.GetTempPath(), "WindowsTools", $"driver-setup-{Guid.NewGuid():N}.exe");
+            Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+
+            using (var http = new HttpClient { Timeout = TimeSpan.FromMinutes(10) })
+            {
+                http.DefaultRequestHeaders.Add("User-Agent", "WindowsTools/1.0");
+                var data = await http.GetByteArrayAsync(url, ct);
+                if (data.Length < 50_000) return (false, "Installer download was empty.");
+                await File.WriteAllBytesAsync(path, data, ct);
+            }
+
+            progress.Report("Running the installer... (approve the Windows prompt)");
+            // UseShellExecute so the installer shows its UI and triggers UAC normally.
+            var proc = Process.Start(new ProcessStartInfo { FileName = path, UseShellExecute = true });
+            if (proc is not null)
+                await proc.WaitForExitAsync(ct);
+
+            return (true, null);
+        }
+        catch (Exception ex)
+        {
+            return (false, ex.Message);
+        }
     }
 
     private static (bool success, string? error) OpenPageFallback(ManufacturerApp app, string reason)
@@ -145,12 +185,14 @@ public class AppInstallService(SettingsService settings)
         try
         {
             var source = InferSource(wingetId);
+            // --interactive forces the package's own installer UI (so UAC shows).
+            var interactive = source == "winget" ? " --interactive" : "";
             var psi = new ProcessStartInfo
             {
                 FileName = "winget",
                 // Visible window (no redirect) so winget can show its progress and
                 // the package's own installer + UAC prompt appear normally.
-                Arguments = $"install --id \"{wingetId}\" --exact --source {source} " +
+                Arguments = $"install --id \"{wingetId}\" --exact --source {source}{interactive} " +
                             "--accept-package-agreements --accept-source-agreements",
                 UseShellExecute = false,
                 CreateNoWindow = false

@@ -41,6 +41,7 @@ public class HardwareDetectionService
             Description = "Automatic driver updates",
             WingetId = "Intel.IntelDriverAndSupportAssistant",
             DownloadPageUrl = "https://www.intel.com/content/www/us/en/support/detect.html",
+            DirectInstallerUrl = "https://dsadata.intel.com/installer",
             ExeSearchPaths =
             [
                 @"C:\Program Files (x86)\Intel Driver and Support Assistant\DSATray.exe",
@@ -151,7 +152,7 @@ public class HardwareDetectionService
         {
             var sysMfr = QueryFirst("Win32_ComputerSystem", "Manufacturer") ?? string.Empty;
             var sysModel = QueryFirst("Win32_ComputerSystem", "Model") ?? string.Empty;
-            hardware.Add(new HardwareInfo { Category = "PC", Icon = "💻", Name = sysModel, Detail = sysMfr });
+            hardware.Add(new HardwareInfo { Category = IsLaptop() ? "Laptop" : "Desktop", Icon = "💻", Name = sysModel, Detail = sysMfr });
 
             if (sysMfr.Contains("Lenovo", StringComparison.OrdinalIgnoreCase))
                 appIds.Add("lenovo-vantage");
@@ -174,6 +175,25 @@ public class HardwareDetectionService
             .ToList();
 
         return (hardware, apps);
+    }
+
+    private static bool IsLaptop()
+    {
+        try
+        {
+            using var s = new ManagementObjectSearcher("SELECT ChassisTypes FROM Win32_SystemEnclosure");
+            foreach (ManagementObject o in s.Get())
+                if (o["ChassisTypes"] is System.Array arr)
+                    foreach (var item in arr)
+                    {
+                        var t = Convert.ToInt32(item);
+                        // 8-12,14 portable/laptop/notebook; 18 sub-notebook; 21 lunchbox;
+                        // 30 tablet; 31 convertible; 32 detachable.
+                        if (t is 8 or 9 or 10 or 11 or 12 or 14 or 18 or 21 or 30 or 31 or 32) return true;
+                    }
+        }
+        catch { }
+        return false;
     }
 
     private static string? QueryFirst(string wmiClass, string property)

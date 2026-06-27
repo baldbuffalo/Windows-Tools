@@ -61,11 +61,9 @@
                             <Border Background="{StaticResource CardBrush}" CornerRadius="8"
                                     Padding="14,10" Margin="0,0,10,10" MinWidth="180">
                                 <StackPanel>
-                                    <TextBlock FontSize="10" Foreground="{StaticResource TextMutedBrush}">
-                                        <Run Text="{Binding Icon}"/>
-                                        <Run Text=" "/>
-                                        <Run Text="{Binding Category}"/>
-                                    </TextBlock>
+                                    <TextBlock Text="{Binding Category}" FontSize="10"
+                                               FontWeight="SemiBold"
+                                               Foreground="{StaticResource TextMutedBrush}"/>
                                     <TextBlock Text="{Binding Name}" FontSize="13" FontWeight="SemiBold"
                                                Foreground="{StaticResource TextPrimaryBrush}" Margin="0,4,0,0"
                                                TextTrimming="CharacterEllipsis" MaxWidth="220"/>
