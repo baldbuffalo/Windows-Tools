@@ -15,7 +15,18 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         InstalledAppsList.ItemsSource = _settings.InstalledApps;
-        SetActive(StorageNavButton);
+
+        // When relaunched elevated to finish driver installs, open Driver Hub.
+        // Otherwise PageContent keeps its XAML default (StorageView).
+        if (Environment.GetCommandLineArgs().Contains("--driverhub"))
+        {
+            SetActive(DriverHubNavButton);
+            PageContent.Content = new DriverHubView(_settings);
+        }
+        else
+        {
+            SetActive(StorageNavButton);
+        }
     }
 
     private void SetActive(Button btn)

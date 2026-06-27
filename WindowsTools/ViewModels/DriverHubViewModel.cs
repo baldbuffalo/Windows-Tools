@@ -17,10 +17,11 @@ public class AppViewModel : INotifyPropertyChanged
     public AppInstallService InstallService { get; }
     public SettingsService Settings { get; }
 
-    public string Status { get => _status; set { _status = value; OnPropertyChanged(); } }
+    public string Status { get => _status; set { _status = value; OnPropertyChanged(); OnPropertyChanged(nameof(ShowStatus)); } }
     public bool IsInstalling { get => _isInstalling; set { _isInstalling = value; OnPropertyChanged(); OnPropertyChanged(nameof(CanInstall)); } }
     public bool IsInstalled { get => _isInstalled; set { _isInstalled = value; OnPropertyChanged(); OnPropertyChanged(nameof(CanInstall)); } }
     public bool CanInstall => !IsInstalling && !IsInstalled;
+    public bool ShowStatus => !string.IsNullOrEmpty(Status);
 
     public RelayCommand InstallCommand { get; }
     public RelayCommand LaunchCommand { get; }
@@ -32,26 +33,35 @@ public class AppViewModel : INotifyPropertyChanged
         Settings = settings;
         IsInstalled = settings.IsInstalled(app.Id);
 
-        InstallCommand = new RelayCommand(async () =>
-        {
-            IsInstalling = true;
-            Status = "Starting...";
-            var progress = new Progress<string>(s => Status = s);
-            var (success, _, error) = await installService.InstallAsync(app, progress, CancellationToken.None);
-            IsInstalling = false;
-            if (success)
-            {
-                IsInstalled = true;
-                Status = "Installed";
-            }
-            else
-            {
-                Status = $"Failed: {error}";
-                MessageBox.Show(error, "Install Failed", MessageBoxButton.OK, MessageBoxImage.Warning);
-            }
-        }, () => CanInstall);
-
+        InstallCommand = new RelayCommand(async () => await InstallAsync(showError: true), () => CanInstall);
         LaunchCommand = new RelayCommand(() => installService.LaunchApp(app), () => IsInstalled);
+    }
+
+    /// <summary>
+    /// Runs the install. When <paramref name="showError"/> is false (batch
+    /// auto-install) failures are shown inline instead of in a popup.
+    /// </summary>
+    public async Task InstallAsync(bool showError = false)
+    {
+        if (!CanInstall) return;
+
+        IsInstalling = true;
+        Status = "Starting...";
+        var progress = new Progress<string>(s => Status = s);
+        var (success, _, error) = await InstallService.InstallAsync(App, progress, CancellationToken.None);
+        IsInstalling = false;
+
+        if (success)
+        {
+            IsInstalled = true;
+            Status = "Installed";
+        }
+        else
+        {
+            Status = $"Failed: {error}";
+            if (showError)
+                MessageBox.Show(error, "Install Failed", MessageBoxButton.OK, MessageBoxImage.Warning);
+        }
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
@@ -92,6 +102,15 @@ public class DriverHubViewModel : INotifyPropertyChanged
         foreach (var a in apps) RecommendedApps.Add(new AppViewModel(a, _install, _settings));
 
         IsScanning = false;
+    }
+
+    public bool HasAppsToInstall => RecommendedApps.Any(a => a.CanInstall);
+
+    /// <summary>Installs every recommended app that isn't installed yet, one at a time.</summary>
+    public async Task AutoInstallAllAsync()
+    {
+        foreach (var app in RecommendedApps.Where(a => a.CanInstall).ToList())
+            await app.InstallAsync();
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;

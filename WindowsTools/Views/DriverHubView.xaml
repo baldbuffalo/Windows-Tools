@@ -118,7 +118,8 @@
                                                        Foreground="{StaticResource TextMutedBrush}" Margin="0,3,0,0"/>
                                             <TextBlock Text="{Binding Status}" FontSize="11"
                                                        Foreground="{StaticResource AccentBrush}" Margin="0,3,0,0"
-                                                       Visibility="{Binding IsInstalling, Converter={StaticResource BoolToVisibility}}"/>
+                                                       TextWrapping="Wrap"
+                                                       Visibility="{Binding ShowStatus, Converter={StaticResource BoolToVisibility}}"/>
                                         </StackPanel>
 
                                         <!-- Actions -->
