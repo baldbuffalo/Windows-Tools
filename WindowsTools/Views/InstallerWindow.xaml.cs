@@ -90,7 +90,7 @@ public partial class InstallerWindow : Window
         await AnimateTo(100, TimeSpan.FromMilliseconds(600));
         StatusText.Text = hardware.Count == 0
             ? "Hardware detected."
-            : "Detected:\n" + string.Join("\n", hardware.Select(h => $"{h.Icon}  {h.Name}"));
+            : "Detected:\n" + string.Join("\n", hardware.Select(h => $"{h.Category}:  {h.Name}"));
     }
 
     private async Task DoDriverStep()

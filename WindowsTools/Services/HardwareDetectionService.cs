@@ -151,7 +151,7 @@ public class HardwareDetectionService
         {
             var sysMfr = QueryFirst("Win32_ComputerSystem", "Manufacturer") ?? string.Empty;
             var sysModel = QueryFirst("Win32_ComputerSystem", "Model") ?? string.Empty;
-            hardware.Add(new HardwareInfo { Category = "System", Icon = "💻", Name = sysModel, Detail = sysMfr });
+            hardware.Add(new HardwareInfo { Category = "PC", Icon = "💻", Name = sysModel, Detail = sysMfr });
 
             if (sysMfr.Contains("Lenovo", StringComparison.OrdinalIgnoreCase))
                 appIds.Add("lenovo-vantage");

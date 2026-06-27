@@ -62,32 +62,30 @@ public class AppInstallService(SettingsService settings)
     private static async Task<(bool success, string? error)> RunInstallAsync(
         ManufacturerApp app, IProgress<string> progress, CancellationToken ct)
     {
-        // Try winget first
-        if (IsWingetAvailable())
+        // Make sure winget is present (install it if missing).
+        if (!IsWingetAvailable())
         {
-            progress.Report("Installing via winget...");
-            return await RunWingetAsync(app.WingetId, ct);
+            progress.Report("Windows Package Manager not found. Installing it...");
+            if (!await TryInstallWingetAsync(progress, ct))
+                return OpenPageFallback(app, "Windows Package Manager isn't available.");
         }
 
-        // Winget missing — try to install it
-        progress.Report("Windows Package Manager not found. Installing it...");
-        if (await TryInstallWingetAsync(progress, ct))
-        {
-            progress.Report("Installing via winget...");
-            return await RunWingetAsync(app.WingetId, ct);
-        }
+        progress.Report("Launching the installer...");
+        var result = await RunWingetAsync(app.WingetId, ct);
+        if (result.success) return result;
 
-        // Last resort: open the manufacturer download page
+        // winget couldn't install it — fall back to the manufacturer's page.
+        return OpenPageFallback(app, $"Automatic install failed ({result.error}).");
+    }
+
+    private static (bool success, string? error) OpenPageFallback(ManufacturerApp app, string reason)
+    {
         if (!string.IsNullOrEmpty(app.DownloadPageUrl))
         {
-            progress.Report("Opening download page in browser...");
-            Process.Start(new ProcessStartInfo { FileName = app.DownloadPageUrl, UseShellExecute = true });
-            return (false, "Windows Package Manager could not be installed automatically. " +
-                          "The download page has been opened in your browser.");
+            try { Process.Start(new ProcessStartInfo { FileName = app.DownloadPageUrl, UseShellExecute = true }); } catch { }
+            return (false, reason + " Opened the download page in your browser.");
         }
-
-        return (false, "Windows Package Manager (winget) is not available on this system. " +
-                       "Please install it from the Microsoft Store (App Installer).");
+        return (false, reason);
     }
 
     private static bool IsWingetAvailable()
@@ -146,29 +144,32 @@ public class AppInstallService(SettingsService settings)
     {
         try
         {
+            var source = InferSource(wingetId);
             var psi = new ProcessStartInfo
             {
                 FileName = "winget",
-                Arguments = $"install --id \"{wingetId}\" --accept-package-agreements --accept-source-agreements",
+                // Visible window (no redirect) so winget can show its progress and
+                // the package's own installer + UAC prompt appear normally.
+                Arguments = $"install --id \"{wingetId}\" --exact --source {source} " +
+                            "--accept-package-agreements --accept-source-agreements",
                 UseShellExecute = false,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                CreateNoWindow = true
+                CreateNoWindow = false
             };
             using var proc = Process.Start(psi) ?? throw new Exception("Failed to start winget.");
             await proc.WaitForExitAsync(ct);
-            if (proc.ExitCode != 0)
-            {
-                var err = await proc.StandardError.ReadToEndAsync(ct);
-                return (false, string.IsNullOrWhiteSpace(err) ? $"winget exited with code {proc.ExitCode}" : err);
-            }
-            return (true, null);
+            return proc.ExitCode == 0
+                ? (true, null)
+                : (false, $"winget exited with code {proc.ExitCode}");
         }
         catch (Exception ex)
         {
             return (false, ex.Message);
         }
     }
+
+    // Microsoft Store product IDs are 12-char uppercase alphanumeric (e.g. 9WZDNCRFJ4MV).
+    private static string InferSource(string id) =>
+        id.Length == 12 && id.All(c => char.IsUpper(c) || char.IsDigit(c)) ? "msstore" : "winget";
 
     private static void RemoveDesktopShortcuts(string appName)
     {
