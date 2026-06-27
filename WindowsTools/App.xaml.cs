@@ -33,6 +33,9 @@ public partial class App : Application
             return;
         }
 
+        // Running the installed copy — clear any leftovers from a self-update.
+        InstallerService.CleanupOldVersion();
+
         var window = new MainWindow();
         window.Show();
     }

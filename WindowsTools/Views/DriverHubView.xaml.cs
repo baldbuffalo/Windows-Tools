@@ -8,11 +8,13 @@ namespace WindowsTools.Views;
 public partial class DriverHubView : UserControl
 {
     private readonly DriverHubViewModel _vm;
+    private readonly SettingsService _settings;
     private bool _autoRan;
 
     public DriverHubView(SettingsService settings)
     {
         InitializeComponent();
+        _settings = settings;
         var detection = new HardwareDetectionService();
         var install = new AppInstallService(settings);
         _vm = new DriverHubViewModel(detection, install, settings);
@@ -40,7 +42,7 @@ public partial class DriverHubView : UserControl
     /// </summary>
     private async Task TryAutoInstallAsync()
     {
-        if (!_vm.HasAppsToInstall) return;
+        if (!_settings.AutoInstallDrivers || !_vm.HasAppsToInstall) return;
 
         if (!ElevationService.IsAdministrator())
         {

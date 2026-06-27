@@ -76,6 +76,20 @@ public static class InstallerService
         return InstallExePath;
     }
 
+    /// <summary>Removes leftover files from a previous in-place update.</summary>
+    public static void CleanupOldVersion()
+    {
+        foreach (var name in new[] { "WindowsTools.old.exe", "WindowsTools.new.exe" })
+        {
+            try
+            {
+                var p = Path.Combine(InstallDir, name);
+                if (File.Exists(p)) File.Delete(p);
+            }
+            catch { }
+        }
+    }
+
     /// <summary>Launches the installed copy in a new process.</summary>
     public static void LaunchInstalled()
     {

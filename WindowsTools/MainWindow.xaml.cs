@@ -27,6 +27,22 @@ public partial class MainWindow : Window
         {
             SetActive(StorageNavButton);
         }
+
+        Loaded += async (_, _) => await MaybeCheckUpdatesAsync();
+    }
+
+    private async Task MaybeCheckUpdatesAsync()
+    {
+        if (!_settings.CheckUpdatesOnStartup) return;
+
+        var info = await UpdateService.CheckAsync();
+        if (!info.UpdateAvailable) return;
+
+        var result = MessageBox.Show(
+            "A new version of Windows Tools is available.\n\nOpen Settings to update now?",
+            "Update available", MessageBoxButton.YesNo, MessageBoxImage.Information);
+        if (result == MessageBoxResult.Yes)
+            SettingsNavButton_Click(this, new RoutedEventArgs());
     }
 
     private void SetActive(Button btn)
@@ -47,6 +63,12 @@ public partial class MainWindow : Window
     {
         SetActive(DriverHubNavButton);
         PageContent.Content = new DriverHubView(_settings);
+    }
+
+    private void SettingsNavButton_Click(object sender, RoutedEventArgs e)
+    {
+        SetActive(SettingsNavButton);
+        PageContent.Content = new SettingsView(_settings);
     }
 
     private void TitleBar_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)

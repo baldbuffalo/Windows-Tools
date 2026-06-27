@@ -15,6 +15,7 @@ public class RelayCommand : ICommand
 
     public bool CanExecute(object? parameter) => _canExecute?.Invoke() ?? true;
     public void Execute(object? parameter) => _execute();
+    public void RaiseCanExecuteChanged() => CommandManager.InvalidateRequerySuggested();
     public event EventHandler? CanExecuteChanged
     {
         add => CommandManager.RequerySuggested += value;
