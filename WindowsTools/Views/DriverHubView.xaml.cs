@@ -37,25 +37,12 @@ public partial class DriverHubView : UserControl
     }
 
     /// <summary>
-    /// Automatically installs detected apps. If we aren't elevated, relaunch as
-    /// admin first so winget can install silently (no per-app UAC prompt).
+    /// Automatically installs detected apps. Each install runs normally and
+    /// shows the standard Windows (UAC) prompt when the package needs it.
     /// </summary>
     private async Task TryAutoInstallAsync()
     {
         if (!_settings.AutoInstallDrivers || !_vm.HasAppsToInstall) return;
-
-        if (!ElevationService.IsAdministrator())
-        {
-            // Relaunch elevated and re-open Driver Hub to finish there.
-            if (ElevationService.RestartAsAdmin("--driverhub"))
-            {
-                Application.Current.Shutdown(0);
-                return;
-            }
-            // User declined elevation — leave the manual Install buttons.
-            return;
-        }
-
         await _vm.AutoInstallAllAsync();
     }
 }

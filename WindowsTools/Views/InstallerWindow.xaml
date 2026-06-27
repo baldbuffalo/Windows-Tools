@@ -2,64 +2,83 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Windows Tools Setup"
-        Width="500" Height="320"
+        Width="580" Height="400"
         WindowStartupLocation="CenterScreen"
         ResizeMode="NoResize"
         Background="White">
 
     <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="210"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
 
-        <!-- Header banner -->
-        <Border Grid.Row="0" Background="#FFF7F7F7" BorderBrush="#FFE0E0E0" BorderThickness="0,0,0,1">
-            <StackPanel Orientation="Horizontal" Margin="24,18">
-                <TextBlock Text="🛠"
-                           FontSize="34"
-                           VerticalAlignment="Center"
-                           Margin="0,0,16,0"/>
-                <StackPanel VerticalAlignment="Center">
-                    <TextBlock Text="Windows Tools Setup"
-                               FontSize="20"
-                               FontWeight="SemiBold"
-                               Foreground="#FF1A1A1A"/>
-                    <TextBlock Text="Installing the application on your computer"
-                               FontSize="12"
-                               Foreground="#FF707070"
-                               Margin="0,2,0,0"/>
+        <!-- Step sidebar -->
+        <Border Grid.Column="0" Background="#FFF2F3F5" BorderBrush="#FFE0E0E0" BorderThickness="0,0,1,0">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="20,22,16,22">
+                    <TextBlock Text="🛠" FontSize="26" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock Text="Windows Tools" FontSize="15" FontWeight="Bold" Foreground="#FF1A1A1A"/>
+                        <TextBlock Text="Setup" FontSize="11" Foreground="#FF808080"/>
+                    </StackPanel>
                 </StackPanel>
-            </StackPanel>
+
+                <ItemsControl x:Name="StepsList" Grid.Row="1" Margin="16,4,12,0">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal" Margin="4,9">
+                                <TextBlock Text="{Binding Indicator}" FontSize="14" Width="22"
+                                           Foreground="{Binding IndicatorBrush}" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding Title}" FontSize="13"
+                                           Foreground="{Binding TitleBrush}"
+                                           FontWeight="{Binding TitleWeight}"
+                                           VerticalAlignment="Center" TextWrapping="Wrap" MaxWidth="140"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <TextBlock Grid.Row="2" Text="v1.0.0" FontSize="10"
+                           Foreground="#FFA0A0A0" Margin="20,0,0,16"/>
+            </Grid>
         </Border>
 
-        <!-- Body -->
-        <StackPanel Grid.Row="1" Margin="32,0" VerticalAlignment="Center">
-            <TextBlock x:Name="StatusText"
-                       Text="Preparing..."
-                       FontSize="14"
-                       Foreground="#FF333333"
-                       Margin="0,0,0,12"/>
+        <!-- Step content -->
+        <Grid Grid.Column="1" Margin="32,28,32,24">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <StackPanel Grid.Row="0">
+                <TextBlock x:Name="StepTitle" Text="Welcome" FontSize="20" FontWeight="SemiBold"
+                           Foreground="#FF1A1A1A"/>
+                <Rectangle Height="1" Fill="#FFE5E5E5" Margin="0,14,0,0"/>
+            </StackPanel>
+
+            <TextBlock x:Name="StatusText" Grid.Row="1" Text="Preparing setup..."
+                       FontSize="13" Foreground="#FF555555" TextWrapping="Wrap"
+                       VerticalAlignment="Center" Margin="0,16"/>
 
             <!-- Green progress bar -->
-            <Border Height="22"
-                    Background="#FFECECEC"
-                    BorderBrush="#FFCFCFCF"
-                    BorderThickness="1"
-                    CornerRadius="3"
-                    ClipToBounds="True">
-                <ProgressBar x:Name="Progress"
-                             Minimum="0" Maximum="100" Value="0"
-                             Background="Transparent"
-                             BorderThickness="0">
+            <Border Grid.Row="2" Height="20" Background="#FFECECEC" BorderBrush="#FFCFCFCF"
+                    BorderThickness="1" CornerRadius="3" ClipToBounds="True">
+                <ProgressBar x:Name="Progress" Minimum="0" Maximum="100" Value="0"
+                             Background="Transparent" BorderThickness="0">
                     <ProgressBar.Template>
                         <ControlTemplate TargetType="ProgressBar">
                             <Grid>
                                 <Border x:Name="PART_Track" Background="Transparent"/>
-                                <Border x:Name="PART_Indicator"
-                                        HorizontalAlignment="Left"
-                                        CornerRadius="2">
+                                <Border x:Name="PART_Indicator" HorizontalAlignment="Left" CornerRadius="2">
                                     <Border.Background>
                                         <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
                                             <GradientStop Color="#FF5BC85B" Offset="0"/>
@@ -73,21 +92,15 @@
                 </ProgressBar>
             </Border>
 
-            <TextBlock x:Name="PercentText"
-                       Text="0%"
-                       FontSize="12"
-                       Foreground="#FF707070"
-                       HorizontalAlignment="Right"
-                       Margin="0,8,0,0"/>
-        </StackPanel>
-
-        <!-- Footer -->
-        <Border Grid.Row="2" Background="#FFF7F7F7" BorderBrush="#FFE0E0E0" BorderThickness="0,1,0,0">
-            <TextBlock Text="Please wait while Windows Tools is installed..."
-                       FontSize="11"
-                       Foreground="#FF909090"
-                       Margin="24,12"
-                       VerticalAlignment="Center"/>
-        </Border>
+            <Grid Grid.Row="3" Margin="0,16,0,0">
+                <TextBlock x:Name="PercentText" Text="0%" FontSize="11" Foreground="#FF909090"
+                           VerticalAlignment="Center"/>
+                <Button x:Name="FinishButton" Content="Finish" Width="110" Height="32"
+                        HorizontalAlignment="Right" Visibility="Collapsed"
+                        Background="#FF3DA63D" Foreground="White" BorderThickness="0"
+                        Cursor="Hand" FontSize="13" FontWeight="SemiBold"
+                        Click="FinishButton_Click"/>
+            </Grid>
+        </Grid>
     </Grid>
 </Window>

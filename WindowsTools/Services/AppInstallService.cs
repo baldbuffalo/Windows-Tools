@@ -149,7 +149,7 @@ public class AppInstallService(SettingsService settings)
             var psi = new ProcessStartInfo
             {
                 FileName = "winget",
-                Arguments = $"install --id \"{wingetId}\" --accept-package-agreements --accept-source-agreements --silent",
+                Arguments = $"install --id \"{wingetId}\" --accept-package-agreements --accept-source-agreements",
                 UseShellExecute = false,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
