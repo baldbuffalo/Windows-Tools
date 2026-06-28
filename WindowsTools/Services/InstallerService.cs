@@ -42,20 +42,35 @@ public static class InstallerService
     /// </summary>
     public static bool CopyExe()
     {
-        try
-        {
-            var source = Environment.ProcessPath
-                ?? Process.GetCurrentProcess().MainModule?.FileName;
-            if (source is null) return false;
+        var source = Environment.ProcessPath
+            ?? Process.GetCurrentProcess().MainModule?.FileName;
+        if (source is null) return false;
 
-            Directory.CreateDirectory(InstallDir);
-            File.Copy(source, InstallExePath, overwrite: true);
-            return true;
-        }
-        catch
+        try { Directory.CreateDirectory(InstallDir); } catch { return false; }
+
+        // When updating, the previous installed exe may still be running and lock
+        // the target — retry briefly until it exits and the file is free.
+        for (var attempt = 0; attempt < 12; attempt++)
         {
-            return false;
+            try
+            {
+                File.Copy(source, InstallExePath, overwrite: true);
+                return true;
+            }
+            catch (IOException)
+            {
+                Thread.Sleep(500);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                Thread.Sleep(500);
+            }
+            catch
+            {
+                return false;
+            }
         }
+        return false;
     }
 
     /// <summary>Creates the desktop and Start Menu shortcuts.</summary>

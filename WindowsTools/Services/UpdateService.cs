@@ -96,16 +96,18 @@ public static class UpdateService
     /// Downloads the new exe, swaps it over the installed one, relaunches it.
     /// Returns null on success (caller should shut down), or an error string.
     /// </summary>
-    public static async Task<string?> DownloadAndApplyAsync(
+    /// <summary>
+    /// Downloads the new exe to a temp folder and returns its path. Run the
+    /// returned file to launch the installer wizard. Returns (null, error) on failure.
+    /// </summary>
+    public static async Task<(string? path, string? error)> DownloadInstallerAsync(
         string url, IProgress<double> progress, CancellationToken ct = default)
     {
         try
         {
-            var dir = InstallerService.InstallDir;
+            var dir = Path.Combine(Path.GetTempPath(), "WindowsTools");
             Directory.CreateDirectory(dir);
-            var target = InstallerService.InstallExePath;
-            var newPath = Path.Combine(dir, "WindowsTools.new.exe");
-            var oldPath = Path.Combine(dir, "WindowsTools.old.exe");
+            var path = Path.Combine(dir, "WindowsTools-Setup.exe");
 
             using (var http = NewClient())
             using (var resp = await http.GetAsync(url, HttpCompletionOption.ResponseHeadersRead, ct))
@@ -113,7 +115,7 @@ public static class UpdateService
                 resp.EnsureSuccessStatusCode();
                 var total = resp.Content.Headers.ContentLength ?? 0;
                 await using var src = await resp.Content.ReadAsStreamAsync(ct);
-                await using var dst = File.Create(newPath);
+                await using var dst = File.Create(path);
 
                 var buffer = new byte[81920];
                 long read = 0;
@@ -126,22 +128,11 @@ public static class UpdateService
                 }
             }
 
-            // Windows allows renaming a running exe: move it aside, drop the new one in.
-            try { if (File.Exists(oldPath)) File.Delete(oldPath); } catch { }
-            if (File.Exists(target)) File.Move(target, oldPath);
-            File.Move(newPath, target);
-
-            Process.Start(new ProcessStartInfo
-            {
-                FileName = target,
-                WorkingDirectory = dir,
-                UseShellExecute = true
-            });
-            return null;
+            return (path, null);
         }
         catch (Exception ex)
         {
-            return ex.Message;
+            return (null, ex.Message);
         }
     }
 

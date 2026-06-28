@@ -112,14 +112,20 @@ public class SettingsViewModel : INotifyPropertyChanged
         IsBusy = true;
         ShowProgress = true;
         DownloadProgress = 0;
-        UpdateStatus = "Downloading update...";
+        UpdateStatus = "Downloading update... 0%";
 
-        var progress = new Progress<double>(p => DownloadProgress = p);
-        var error = await UpdateService.DownloadAndApplyAsync(_downloadUrl, progress);
-
-        if (error is null)
+        var progress = new Progress<double>(p =>
         {
-            UpdateStatus = "Update installed. Restarting...";
+            DownloadProgress = p;
+            UpdateStatus = $"Downloading update... {(int)p}%";
+        });
+        var (path, error) = await UpdateService.DownloadInstallerAsync(_downloadUrl, progress);
+
+        if (path is not null)
+        {
+            DownloadProgress = 100;
+            UpdateStatus = "Download complete. Launching installer...";
+            Process.Start(new ProcessStartInfo { FileName = path, UseShellExecute = true });
             Application.Current.Shutdown(0);
         }
         else
