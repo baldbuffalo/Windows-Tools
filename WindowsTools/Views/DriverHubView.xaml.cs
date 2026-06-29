@@ -1,6 +1,5 @@
 using System.Windows;
 using System.Windows.Controls;
-using Microsoft.Web.WebView2.Wpf;
 using WindowsTools.Services;
 using WindowsTools.ViewModels;
 
@@ -22,23 +21,32 @@ public partial class DriverHubView : UserControl
         _vm = new DriverHubViewModel(detection, _install, settings);
         DataContext = _vm;
         Loaded += OnLoaded;
-        Unloaded += (_, _) => DisposeEmbed();
+        Unloaded += (_, _) => { try { WebView.Dispose(); } catch { } };
     }
 
     private async void OnLoaded(object sender, RoutedEventArgs e)
     {
         if (_autoRan) return;
         _autoRan = true;
+
         await _vm.ScanAsync();
+
+        // Show the installed app's web UI as soon as detection resolves.
+        var url = _vm.RecommendedApps
+            .Select(a => a.App.EmbedUrl)
+            .FirstOrDefault(u => !string.IsNullOrEmpty(u));
+        if (url is not null)
+            WebView.Source = new Uri(url);
+        else
+            EmbedHost.Visibility = Visibility.Collapsed; // no embeddable app — show the list
+
         await TryAutoInstallAsync();
-        TryAutoEmbed();
     }
 
     private async void ScanButton_Click(object sender, RoutedEventArgs e)
     {
         await _vm.ScanAsync();
         await TryAutoInstallAsync();
-        TryAutoEmbed();
     }
 
     private async Task TryAutoInstallAsync()
@@ -47,32 +55,11 @@ public partial class DriverHubView : UserControl
         await _vm.AutoInstallAllAsync();
     }
 
-    // Auto-show the installed manufacturer app's web UI full-screen, no clicks.
-    private void TryAutoEmbed()
-    {
-        var url = _vm.RecommendedApps
-            .Select(a => a.App.EmbedUrl)
-            .FirstOrDefault(u => !string.IsNullOrEmpty(u));
-        if (url is not null) ShowEmbed(url);
-    }
-
     private void OpenApp_Click(object sender, RoutedEventArgs e)
     {
         if ((sender as FrameworkElement)?.Tag is not AppViewModel vm) return;
-        if (!string.IsNullOrEmpty(vm.App.EmbedUrl)) ShowEmbed(vm.App.EmbedUrl);
-    }
-
-    private void ShowEmbed(string url)
-    {
-        DisposeEmbed();
-        EmbedHost.Child = new WebView2 { Source = new Uri(url) };
+        if (string.IsNullOrEmpty(vm.App.EmbedUrl)) return;
+        WebView.Source = new Uri(vm.App.EmbedUrl);
         EmbedHost.Visibility = Visibility.Visible;
-    }
-
-    private void DisposeEmbed()
-    {
-        if (EmbedHost.Child is WebView2 web) web.Dispose();
-        EmbedHost.Child = null;
-        EmbedHost.Visibility = Visibility.Collapsed;
     }
 }
