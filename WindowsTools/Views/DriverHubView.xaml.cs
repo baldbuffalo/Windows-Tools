@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
+using Microsoft.Web.WebView2.Wpf;
 using WindowsTools.Controls;
 using WindowsTools.Services;
 using WindowsTools.ViewModels;
@@ -22,6 +23,7 @@ public partial class DriverHubView : UserControl
         _vm = new DriverHubViewModel(detection, _install, settings);
         DataContext = _vm;
         Loaded += OnLoaded;
+        Unloaded += (_, _) => DisposeEmbed();
     }
 
     private async void OnLoaded(object sender, RoutedEventArgs e)
@@ -30,12 +32,14 @@ public partial class DriverHubView : UserControl
         _autoRan = true;
         await _vm.ScanAsync();
         await TryAutoInstallAsync();
+        TryAutoEmbed();
     }
 
     private async void ScanButton_Click(object sender, RoutedEventArgs e)
     {
         await _vm.ScanAsync();
         await TryAutoInstallAsync();
+        TryAutoEmbed();
     }
 
     private async Task TryAutoInstallAsync()
@@ -44,42 +48,44 @@ public partial class DriverHubView : UserControl
         await _vm.AutoInstallAllAsync();
     }
 
-    // Opens an installed app embedded inside the Driver Hub (no external window).
+    // Auto-show the embeddable web tool (e.g. Intel DSA) full-screen, no clicks.
+    private void TryAutoEmbed()
+    {
+        var app = _vm.RecommendedApps
+            .Select(a => a.App)
+            .FirstOrDefault(a => !string.IsNullOrEmpty(a.EmbedUrl));
+        if (app is null) return;
+        ShowEmbed(new WebView2 { Source = new Uri(app.EmbedUrl!) });
+    }
+
     private void OpenApp_Click(object sender, RoutedEventArgs e)
     {
         if ((sender as FrameworkElement)?.Tag is not AppViewModel vm) return;
         var app = vm.App;
 
-        // Web-based tools (e.g. Intel DSA) embed their page in a WebView2.
         if (!string.IsNullOrEmpty(app.EmbedUrl))
-        {
-            EmbedTitle.Text = app.Name;
-            EmbedHost.Child = new Microsoft.Web.WebView2.Wpf.WebView2 { Source = new Uri(app.EmbedUrl) };
-            EmbedPanel.Visibility = Visibility.Visible;
-            return;
-        }
-
-        // Normal Win32 apps embed via window reparenting.
-        if (_install.CanEmbed(app))
-        {
-            EmbedTitle.Text = app.Name;
-            EmbedHost.Child = new EmbeddedAppHost(() => _install.StartAppProcess(app));
-            EmbedPanel.Visibility = Visibility.Visible;
-            return;
-        }
-
-        // Store apps can't be embedded — launch them normally.
-        _install.LaunchApp(app);
+            ShowEmbed(new WebView2 { Source = new Uri(app.EmbedUrl) });
+        else if (_install.CanEmbed(app))
+            ShowEmbed(new EmbeddedAppHost(() => _install.StartAppProcess(app)));
+        else
+            _install.LaunchApp(app);
     }
 
-    private void EmbedBack_Click(object sender, RoutedEventArgs e)
+    private void ShowEmbed(UIElement child)
+    {
+        DisposeEmbed();
+        EmbedHost.Child = child;
+        EmbedHost.Visibility = Visibility.Visible;
+    }
+
+    private void DisposeEmbed()
     {
         switch (EmbedHost.Child)
         {
             case EmbeddedAppHost host: host.Dispose(); break;
-            case Microsoft.Web.WebView2.Wpf.WebView2 web: web.Dispose(); break;
+            case WebView2 web: web.Dispose(); break;
         }
         EmbedHost.Child = null;
-        EmbedPanel.Visibility = Visibility.Collapsed;
+        EmbedHost.Visibility = Visibility.Collapsed;
     }
 }

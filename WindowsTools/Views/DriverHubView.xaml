@@ -9,158 +9,140 @@
         <conv:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibility"/>
     </UserControl.Resources>
 
-    <Grid Margin="32,28,32,28">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
-
-        <!-- Header -->
-        <Grid Grid.Row="0" Margin="0,0,0,24">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
-            </Grid.ColumnDefinitions>
-            <StackPanel>
-                <TextBlock Text="Driver Hub" FontSize="28" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
-                <TextBlock Text="Detects your hardware and installs manufacturer apps" FontSize="12" Foreground="{StaticResource TextMutedBrush}" Margin="0,4,0,0"/>
-            </StackPanel>
-            <Button Grid.Column="1" Content="⟳  Scan Hardware" Style="{StaticResource PrimaryButtonStyle}"
-                    Click="ScanButton_Click" VerticalAlignment="Center"
-                    IsEnabled="{Binding IsScanning, Converter={StaticResource InverseBoolToVisibility}}"/>
-        </Grid>
-
-        <!-- Scanning indicator -->
-        <Border Grid.Row="1" Visibility="{Binding IsScanning, Converter={StaticResource BoolToVisibility}}"
-                Style="{StaticResource CardStyle}" Margin="0,0,0,16">
-            <TextBlock Text="Scanning hardware..." FontSize="14"
-                       Foreground="{StaticResource TextMutedBrush}" HorizontalAlignment="Center"/>
-        </Border>
-
-        <!-- Detected Hardware -->
-        <Grid Grid.Row="1" Visibility="{Binding IsScanning, Converter={StaticResource InverseBoolToVisibility}}">
+    <Grid>
+        <!-- Scan + apps UI (shown when there is no embeddable web app) -->
+        <Grid Margin="32,28,32,28">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
-            <!-- Hardware Cards -->
-            <StackPanel Grid.Row="0" Margin="0,0,0,24"
-                        Visibility="{Binding HasResults, Converter={StaticResource BoolToVisibility}}">
-                <TextBlock Text="DETECTED HARDWARE" FontSize="10" FontWeight="SemiBold"
-                           Foreground="{StaticResource TextMutedBrush}" Margin="0,0,0,10"/>
-                <ItemsControl ItemsSource="{Binding Hardware}">
-                    <ItemsControl.ItemsPanel>
-                        <ItemsPanelTemplate>
-                            <WrapPanel/>
-                        </ItemsPanelTemplate>
-                    </ItemsControl.ItemsPanel>
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <Border Background="{StaticResource CardBrush}" CornerRadius="8"
-                                    Padding="14,10" Margin="0,0,10,10" MinWidth="180">
-                                <StackPanel>
-                                    <TextBlock Text="{Binding Category}" FontSize="10"
-                                               FontWeight="SemiBold"
-                                               Foreground="{StaticResource TextMutedBrush}"/>
-                                    <TextBlock Text="{Binding Name}" FontSize="13" FontWeight="SemiBold"
-                                               Foreground="{StaticResource TextPrimaryBrush}" Margin="0,4,0,0"
-                                               TextTrimming="CharacterEllipsis" MaxWidth="220"/>
-                                    <TextBlock Text="{Binding Detail}" FontSize="11"
-                                               Foreground="{StaticResource TextMutedBrush}"
-                                               TextTrimming="CharacterEllipsis" MaxWidth="220"/>
-                                </StackPanel>
-                            </Border>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
-            </StackPanel>
-        </Grid>
-
-        <!-- Recommended Apps -->
-        <Grid Grid.Row="2">
-            <TextBlock Text="Click 'Scan Hardware' to detect your system"
-                       FontSize="15" Foreground="{StaticResource TextMutedBrush}"
-                       HorizontalAlignment="Center" VerticalAlignment="Center"
-                       Visibility="{Binding HasResults, Converter={StaticResource InverseBoolToVisibility}}"/>
-
-            <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <!-- Header -->
+            <Grid Grid.Row="0" Margin="0,0,0,24">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
                 <StackPanel>
-                    <TextBlock Text="RECOMMENDED APPS" FontSize="10" FontWeight="SemiBold"
-                               Foreground="{StaticResource TextMutedBrush}" Margin="0,0,0,10"
-                               Visibility="{Binding HasResults, Converter={StaticResource BoolToVisibility}}"/>
+                    <TextBlock Text="Driver Hub" FontSize="28" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                    <TextBlock Text="Detects your hardware and installs manufacturer apps" FontSize="12" Foreground="{StaticResource TextMutedBrush}" Margin="0,4,0,0"/>
+                </StackPanel>
+                <Button Grid.Column="1" Content="⟳  Scan Hardware" Style="{StaticResource PrimaryButtonStyle}"
+                        Click="ScanButton_Click" VerticalAlignment="Center"
+                        IsEnabled="{Binding IsScanning, Converter={StaticResource InverseBoolToVisibility}}"/>
+            </Grid>
 
-                    <ItemsControl ItemsSource="{Binding RecommendedApps}">
+            <!-- Scanning indicator -->
+            <Border Grid.Row="1" Visibility="{Binding IsScanning, Converter={StaticResource BoolToVisibility}}"
+                    Style="{StaticResource CardStyle}" Margin="0,0,0,16">
+                <TextBlock Text="Scanning hardware..." FontSize="14"
+                           Foreground="{StaticResource TextMutedBrush}" HorizontalAlignment="Center"/>
+            </Border>
+
+            <!-- Detected Hardware -->
+            <Grid Grid.Row="1" Visibility="{Binding IsScanning, Converter={StaticResource InverseBoolToVisibility}}">
+                <StackPanel Margin="0,0,0,24"
+                            Visibility="{Binding HasResults, Converter={StaticResource BoolToVisibility}}">
+                    <TextBlock Text="DETECTED HARDWARE" FontSize="10" FontWeight="SemiBold"
+                               Foreground="{StaticResource TextMutedBrush}" Margin="0,0,0,10"/>
+                    <ItemsControl ItemsSource="{Binding Hardware}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                                <Border Style="{StaticResource CardStyle}">
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="Auto"/>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="Auto"/>
-                                        </Grid.ColumnDefinitions>
-
-                                        <!-- Icon -->
-                                        <Border Width="48" Height="48" Background="#FF2E2E2E" CornerRadius="10">
-                                            <TextBlock Text="{Binding App.Icon}" FontSize="24"
-                                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                        </Border>
-
-                                        <!-- Info -->
-                                        <StackPanel Grid.Column="1" Margin="14,0,0,0" VerticalAlignment="Center">
-                                            <TextBlock Text="{Binding App.Name}" FontSize="15" FontWeight="SemiBold"
-                                                       Foreground="{StaticResource TextPrimaryBrush}"/>
-                                            <TextBlock Text="{Binding App.Description}" FontSize="12"
-                                                       Foreground="{StaticResource TextMutedBrush}" Margin="0,3,0,0"/>
-                                            <TextBlock Text="{Binding Status}" FontSize="11"
-                                                       Foreground="{StaticResource AccentBrush}" Margin="0,3,0,0"
-                                                       TextWrapping="Wrap"
-                                                       Visibility="{Binding ShowStatus, Converter={StaticResource BoolToVisibility}}"/>
-                                        </StackPanel>
-
-                                        <!-- Actions -->
-                                        <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
-                                            <Button Content="▶  Open"
-                                                    Style="{StaticResource PrimaryButtonStyle}"
-                                                    Click="OpenApp_Click"
-                                                    Tag="{Binding}"
-                                                    Margin="0,0,8,0"
-                                                    Visibility="{Binding IsInstalled, Converter={StaticResource BoolToVisibility}}"/>
-                                            <Button Content="⬇  Install"
-                                                    Style="{StaticResource PrimaryButtonStyle}"
-                                                    Command="{Binding InstallCommand}"
-                                                    Visibility="{Binding CanInstall, Converter={StaticResource BoolToVisibility}}"/>
-                                            <Border Width="80" Height="32" Background="#FF1A3A1A" CornerRadius="6"
-                                                    Visibility="{Binding IsInstalled, Converter={StaticResource BoolToVisibility}}">
-                                                <TextBlock Text="✓ Installed" FontSize="12" FontWeight="SemiBold"
-                                                           Foreground="{StaticResource GreenBrush}"
-                                                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                            </Border>
-                                        </StackPanel>
-                                    </Grid>
+                                <Border Background="{StaticResource CardBrush}" CornerRadius="8"
+                                        Padding="14,10" Margin="0,0,10,10" MinWidth="180">
+                                    <StackPanel>
+                                        <TextBlock Text="{Binding Category}" FontSize="10" FontWeight="SemiBold"
+                                                   Foreground="{StaticResource TextMutedBrush}"/>
+                                        <TextBlock Text="{Binding Name}" FontSize="13" FontWeight="SemiBold"
+                                                   Foreground="{StaticResource TextPrimaryBrush}" Margin="0,4,0,0"
+                                                   TextTrimming="CharacterEllipsis" MaxWidth="220"/>
+                                        <TextBlock Text="{Binding Detail}" FontSize="11"
+                                                   Foreground="{StaticResource TextMutedBrush}"
+                                                   TextTrimming="CharacterEllipsis" MaxWidth="220"/>
+                                    </StackPanel>
                                 </Border>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
                 </StackPanel>
-            </ScrollViewer>
+            </Grid>
 
-            <!-- Embedded app view -->
-            <Grid x:Name="EmbedPanel" Visibility="Collapsed" Background="{StaticResource BackgroundBrush}">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
-                </Grid.RowDefinitions>
-                <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
-                    <Button Content="←  Back" Style="{StaticResource PrimaryButtonStyle}" Click="EmbedBack_Click"/>
-                    <TextBlock x:Name="EmbedTitle" FontSize="15" FontWeight="SemiBold" VerticalAlignment="Center"
-                               Margin="14,0,0,0" Foreground="{StaticResource TextPrimaryBrush}"/>
-                </StackPanel>
-                <Border Grid.Row="1" x:Name="EmbedHost" Background="#FF202020"
-                        CornerRadius="8" ClipToBounds="True"/>
+            <!-- Recommended Apps -->
+            <Grid Grid.Row="2">
+                <TextBlock Text="Click 'Scan Hardware' to detect your system"
+                           FontSize="15" Foreground="{StaticResource TextMutedBrush}"
+                           HorizontalAlignment="Center" VerticalAlignment="Center"
+                           Visibility="{Binding HasResults, Converter={StaticResource InverseBoolToVisibility}}"/>
+
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel>
+                        <TextBlock Text="RECOMMENDED APPS" FontSize="10" FontWeight="SemiBold"
+                                   Foreground="{StaticResource TextMutedBrush}" Margin="0,0,0,10"
+                                   Visibility="{Binding HasResults, Converter={StaticResource BoolToVisibility}}"/>
+
+                        <ItemsControl ItemsSource="{Binding RecommendedApps}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Style="{StaticResource CardStyle}">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+
+                                            <Border Width="48" Height="48" Background="#FF2E2E2E" CornerRadius="10">
+                                                <TextBlock Text="{Binding App.Icon}" FontSize="24"
+                                                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
+
+                                            <StackPanel Grid.Column="1" Margin="14,0,0,0" VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding App.Name}" FontSize="15" FontWeight="SemiBold"
+                                                           Foreground="{StaticResource TextPrimaryBrush}"/>
+                                                <TextBlock Text="{Binding App.Description}" FontSize="12"
+                                                           Foreground="{StaticResource TextMutedBrush}" Margin="0,3,0,0"/>
+                                                <TextBlock Text="{Binding Status}" FontSize="11"
+                                                           Foreground="{StaticResource AccentBrush}" Margin="0,3,0,0"
+                                                           TextWrapping="Wrap"
+                                                           Visibility="{Binding ShowStatus, Converter={StaticResource BoolToVisibility}}"/>
+                                            </StackPanel>
+
+                                            <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                                                <Button Content="▶  Open"
+                                                        Style="{StaticResource PrimaryButtonStyle}"
+                                                        Click="OpenApp_Click"
+                                                        Tag="{Binding}"
+                                                        Margin="0,0,8,0"
+                                                        Visibility="{Binding IsInstalled, Converter={StaticResource BoolToVisibility}}"/>
+                                                <Button Content="⬇  Install"
+                                                        Style="{StaticResource PrimaryButtonStyle}"
+                                                        Command="{Binding InstallCommand}"
+                                                        Visibility="{Binding CanInstall, Converter={StaticResource BoolToVisibility}}"/>
+                                                <Border Width="80" Height="32" Background="#FF1A3A1A" CornerRadius="6"
+                                                        Visibility="{Binding IsInstalled, Converter={StaticResource BoolToVisibility}}">
+                                                    <TextBlock Text="✓ Installed" FontSize="12" FontWeight="SemiBold"
+                                                               Foreground="{StaticResource GreenBrush}"
+                                                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                </Border>
+                                            </StackPanel>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </ScrollViewer>
             </Grid>
         </Grid>
+
+        <!-- Full-screen embedded app/site (auto-shown when available) -->
+        <Border x:Name="EmbedHost" Visibility="Collapsed"
+                Background="{StaticResource BackgroundBrush}" ClipToBounds="True"/>
     </Grid>
 </UserControl>
