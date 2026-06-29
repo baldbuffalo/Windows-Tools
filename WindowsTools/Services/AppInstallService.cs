@@ -43,6 +43,27 @@ public class AppInstallService(SettingsService settings)
         return (true, exePath, null);
     }
 
+    /// <summary>True if the app is already present (known to us, or its exe / Store entry exists).</summary>
+    public bool IsAppInstalled(ManufacturerApp app)
+    {
+        if (settings.IsInstalled(app.Id)) return true;
+        if (FindExe(app.ExeSearchPaths) is not null) return true;
+        if (!string.IsNullOrEmpty(app.ShellLaunchArg) && IsStoreProtocolRegistered(app.ShellLaunchArg)) return true;
+        return false;
+    }
+
+    // Store apps register a URI protocol (e.g. "lenovo-vantage:") under HKCR when installed.
+    private static bool IsStoreProtocolRegistered(string shellArg)
+    {
+        try
+        {
+            var scheme = shellArg.TrimEnd(':');
+            using var key = Microsoft.Win32.Registry.ClassesRoot.OpenSubKey(scheme);
+            return key?.GetValue("URL Protocol") is not null;
+        }
+        catch { return false; }
+    }
+
     public void LaunchApp(ManufacturerApp app)
     {
         try
