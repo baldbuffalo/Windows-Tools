@@ -114,10 +114,16 @@ public class SettingsViewModel : INotifyPropertyChanged
         DownloadProgress = 0;
         UpdateStatus = "Downloading update... 0%";
 
+        var lastPercent = -1;
         var progress = new Progress<double>(p =>
         {
             DownloadProgress = p;
-            UpdateStatus = $"Downloading update... {(int)p}%";
+            var whole = (int)p;
+            if (whole != lastPercent) // throttle UI churn to once per percent
+            {
+                lastPercent = whole;
+                UpdateStatus = $"Downloading update... {whole}%";
+            }
         });
         var (path, error) = await UpdateService.DownloadInstallerAsync(_downloadUrl, progress);
 
@@ -125,7 +131,8 @@ public class SettingsViewModel : INotifyPropertyChanged
         {
             DownloadProgress = 100;
             UpdateStatus = "Download complete. Launching installer...";
-            Process.Start(new ProcessStartInfo { FileName = path, UseShellExecute = true });
+            // Launch off the UI thread — ShellExecute of the new exe can block briefly.
+            await Task.Run(() => Process.Start(new ProcessStartInfo { FileName = path, UseShellExecute = true }));
             Application.Current.Shutdown(0);
         }
         else
