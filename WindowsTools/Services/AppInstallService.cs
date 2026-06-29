@@ -80,6 +80,27 @@ public class AppInstallService(SettingsService settings)
         catch { }
     }
 
+    /// <summary>True if the app is a normal exe we can embed (not a Store app).</summary>
+    public bool CanEmbed(ManufacturerApp app) =>
+        string.IsNullOrEmpty(app.ShellLaunchArg) && FindExe(app.ExeSearchPaths) is not null;
+
+    /// <summary>Starts the app's exe and returns the process (for embedding).</summary>
+    public Process? StartAppProcess(ManufacturerApp app)
+    {
+        try
+        {
+            var exe = FindExe(app.ExeSearchPaths);
+            if (exe is null) return null;
+            return Process.Start(new ProcessStartInfo
+            {
+                FileName = exe,
+                WorkingDirectory = Path.GetDirectoryName(exe),
+                UseShellExecute = false
+            });
+        }
+        catch { return null; }
+    }
+
     private static async Task<(bool success, string? error)> RunInstallAsync(
         ManufacturerApp app, IProgress<string> progress, CancellationToken ct)
     {
