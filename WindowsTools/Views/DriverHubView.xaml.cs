@@ -1,7 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
 using Microsoft.Web.WebView2.Wpf;
-using WindowsTools.Controls;
 using WindowsTools.Services;
 using WindowsTools.ViewModels;
 
@@ -48,43 +47,32 @@ public partial class DriverHubView : UserControl
         await _vm.AutoInstallAllAsync();
     }
 
-    // Auto-show the embeddable web tool (e.g. Intel DSA) full-screen, no clicks.
+    // Auto-show the manufacturer's web tool full-screen, no clicks.
     private void TryAutoEmbed()
     {
-        var app = _vm.RecommendedApps
-            .Select(a => a.App)
-            .FirstOrDefault(a => !string.IsNullOrEmpty(a.EmbedUrl));
-        if (app is null) return;
-        ShowEmbed(new WebView2 { Source = new Uri(app.EmbedUrl!) });
+        var url = _vm.RecommendedApps
+            .Select(a => a.App.EmbedUrl ?? a.App.DownloadPageUrl)
+            .FirstOrDefault(u => !string.IsNullOrEmpty(u));
+        if (url is not null) ShowEmbed(url);
     }
 
     private void OpenApp_Click(object sender, RoutedEventArgs e)
     {
         if ((sender as FrameworkElement)?.Tag is not AppViewModel vm) return;
-        var app = vm.App;
-
-        if (!string.IsNullOrEmpty(app.EmbedUrl))
-            ShowEmbed(new WebView2 { Source = new Uri(app.EmbedUrl) });
-        else if (_install.CanEmbed(app))
-            ShowEmbed(new EmbeddedAppHost(() => _install.StartAppProcess(app)));
-        else
-            _install.LaunchApp(app);
+        var url = vm.App.EmbedUrl ?? vm.App.DownloadPageUrl;
+        if (!string.IsNullOrEmpty(url)) ShowEmbed(url);
     }
 
-    private void ShowEmbed(UIElement child)
+    private void ShowEmbed(string url)
     {
         DisposeEmbed();
-        EmbedHost.Child = child;
+        EmbedHost.Child = new WebView2 { Source = new Uri(url) };
         EmbedHost.Visibility = Visibility.Visible;
     }
 
     private void DisposeEmbed()
     {
-        switch (EmbedHost.Child)
-        {
-            case EmbeddedAppHost host: host.Dispose(); break;
-            case WebView2 web: web.Dispose(); break;
-        }
+        if (EmbedHost.Child is WebView2 web) web.Dispose();
         EmbedHost.Child = null;
         EmbedHost.Visibility = Visibility.Collapsed;
     }
