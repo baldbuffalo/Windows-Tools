@@ -1,6 +1,8 @@
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Input;
+using WindowsTools.Models;
 using WindowsTools.Services;
 using WindowsTools.Views;
 
@@ -14,7 +16,11 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
-        InstalledAppsList.ItemsSource = _settings.InstalledApps;
+
+        // Sidebar lists only OEM-suite apps. Driver updater apps live in Driver Hub.
+        var apps = CollectionViewSource.GetDefaultView(_settings.InstalledApps);
+        apps.Filter = o => o is InstalledAppEntry e && e.Category != AppCategory.DriverUpdater;
+        InstalledAppsList.ItemsSource = apps;
 
         // When relaunched elevated to finish driver installs, open Driver Hub.
         // Otherwise PageContent keeps its XAML default (StorageView).
