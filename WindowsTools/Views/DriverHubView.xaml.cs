@@ -47,11 +47,11 @@ public partial class DriverHubView : UserControl
         await _vm.AutoInstallAllAsync();
     }
 
-    // Auto-show the manufacturer's web tool full-screen, no clicks.
+    // Auto-show the installed manufacturer app's web UI full-screen, no clicks.
     private void TryAutoEmbed()
     {
         var url = _vm.RecommendedApps
-            .Select(a => a.App.EmbedUrl ?? a.App.DownloadPageUrl)
+            .Select(a => a.App.EmbedUrl)
             .FirstOrDefault(u => !string.IsNullOrEmpty(u));
         if (url is not null) ShowEmbed(url);
     }
@@ -59,8 +59,7 @@ public partial class DriverHubView : UserControl
     private void OpenApp_Click(object sender, RoutedEventArgs e)
     {
         if ((sender as FrameworkElement)?.Tag is not AppViewModel vm) return;
-        var url = vm.App.EmbedUrl ?? vm.App.DownloadPageUrl;
-        if (!string.IsNullOrEmpty(url)) ShowEmbed(url);
+        if (!string.IsNullOrEmpty(vm.App.EmbedUrl)) ShowEmbed(vm.App.EmbedUrl);
     }
 
     private void ShowEmbed(string url)
