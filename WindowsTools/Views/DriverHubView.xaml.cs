@@ -50,21 +50,35 @@ public partial class DriverHubView : UserControl
         if ((sender as FrameworkElement)?.Tag is not AppViewModel vm) return;
         var app = vm.App;
 
-        // Store apps can't be reparented — launch them normally.
-        if (!_install.CanEmbed(app))
+        // Web-based tools (e.g. Intel DSA) embed their page in a WebView2.
+        if (!string.IsNullOrEmpty(app.EmbedUrl))
         {
-            _install.LaunchApp(app);
+            EmbedTitle.Text = app.Name;
+            EmbedHost.Child = new Microsoft.Web.WebView2.Wpf.WebView2 { Source = new Uri(app.EmbedUrl) };
+            EmbedPanel.Visibility = Visibility.Visible;
             return;
         }
 
-        EmbedTitle.Text = app.Name;
-        EmbedHost.Child = new EmbeddedAppHost(() => _install.StartAppProcess(app));
-        EmbedPanel.Visibility = Visibility.Visible;
+        // Normal Win32 apps embed via window reparenting.
+        if (_install.CanEmbed(app))
+        {
+            EmbedTitle.Text = app.Name;
+            EmbedHost.Child = new EmbeddedAppHost(() => _install.StartAppProcess(app));
+            EmbedPanel.Visibility = Visibility.Visible;
+            return;
+        }
+
+        // Store apps can't be embedded — launch them normally.
+        _install.LaunchApp(app);
     }
 
     private void EmbedBack_Click(object sender, RoutedEventArgs e)
     {
-        if (EmbedHost.Child is EmbeddedAppHost host) host.Dispose();
+        switch (EmbedHost.Child)
+        {
+            case EmbeddedAppHost host: host.Dispose(); break;
+            case Microsoft.Web.WebView2.Wpf.WebView2 web: web.Dispose(); break;
+        }
         EmbedHost.Child = null;
         EmbedPanel.Visibility = Visibility.Collapsed;
     }

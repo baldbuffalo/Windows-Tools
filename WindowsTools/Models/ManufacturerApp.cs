@@ -17,4 +17,6 @@ public class ManufacturerApp
     // Direct link to the vendor's installer .exe. When set, it's downloaded and
     // run directly (real installer UI + UAC) instead of going through winget.
     public string? DirectInstallerUrl { get; set; }
+    // Web UI to embed in-app (for browser-based tools like Intel DSA).
+    public string? EmbedUrl { get; set; }
 }
