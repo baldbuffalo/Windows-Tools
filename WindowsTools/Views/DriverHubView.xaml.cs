@@ -32,13 +32,6 @@ public partial class DriverHubView : UserControl
             .FirstOrDefault(u => !string.IsNullOrEmpty(u));
 
         if (url is not null)
-        {
             WebView.Source = new Uri(url);
-        }
-        else
-        {
-            WebView.Visibility = Visibility.Collapsed;
-            EmptyMessage.Visibility = Visibility.Visible;
-        }
     }
 }
