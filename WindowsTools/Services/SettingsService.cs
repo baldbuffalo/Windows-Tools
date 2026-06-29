@@ -15,6 +15,7 @@ public class SettingsService
 
     private bool _checkUpdatesOnStartup = true;
     private bool _autoInstallDrivers = true;
+    private string? _lastDriverEmbedUrl;
 
     public bool CheckUpdatesOnStartup
     {
@@ -26,6 +27,13 @@ public class SettingsService
     {
         get => _autoInstallDrivers;
         set { _autoInstallDrivers = value; Save(); }
+    }
+
+    // Cached so Driver Hub can show the site instantly without waiting for detection.
+    public string? LastDriverEmbedUrl
+    {
+        get => _lastDriverEmbedUrl;
+        set { _lastDriverEmbedUrl = value; Save(); }
     }
 
     public SettingsService() => Load();
@@ -49,6 +57,7 @@ public class SettingsService
             if (data is null) return;
             _checkUpdatesOnStartup = data.CheckUpdatesOnStartup;
             _autoInstallDrivers = data.AutoInstallDrivers;
+            _lastDriverEmbedUrl = data.LastDriverEmbedUrl;
             if (data.InstalledApps is not null)
                 foreach (var entry in data.InstalledApps)
                     InstalledApps.Add(entry);
@@ -65,7 +74,8 @@ public class SettingsService
             {
                 InstalledApps = [.. InstalledApps],
                 CheckUpdatesOnStartup = _checkUpdatesOnStartup,
-                AutoInstallDrivers = _autoInstallDrivers
+                AutoInstallDrivers = _autoInstallDrivers,
+                LastDriverEmbedUrl = _lastDriverEmbedUrl
             };
             File.WriteAllText(SettingsPath, JsonSerializer.Serialize(data, new JsonSerializerOptions { WriteIndented = true }));
         }
@@ -77,5 +87,6 @@ public class SettingsService
         public List<InstalledAppEntry> InstalledApps { get; set; } = [];
         public bool CheckUpdatesOnStartup { get; set; } = true;
         public bool AutoInstallDrivers { get; set; } = true;
+        public string? LastDriverEmbedUrl { get; set; }
     }
 }
