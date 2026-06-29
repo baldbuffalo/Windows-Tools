@@ -41,7 +41,6 @@ public class HardwareDetectionService
             Description = "Automatic driver updates",
             WingetId = "Intel.IntelDriverAndSupportAssistant",
             DownloadPageUrl = "https://www.intel.com/content/www/us/en/support/detect.html",
-            DirectInstallerUrl = "https://dsadata.intel.com/installer",
             EmbedUrl = "https://www.intel.com/content/www/us/en/support/intel-driver-support-assistant.html",
             ExeSearchPaths =
             [

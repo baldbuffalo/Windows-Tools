@@ -124,26 +124,34 @@ public partial class InstallerWindow : Window
         var step = 100.0 / _apps.Count;
         var pct = 0.0;
         var anyInstalled = false;
-        foreach (var app in _apps)
+        try
         {
-            if (install.IsAppInstalled(app))
+            foreach (var app in _apps)
             {
-                StatusText.Text = $"{app.Name} is already installed on this PC. Skipping.";
-                await Task.Delay(700);
+                if (install.IsAppInstalled(app))
+                {
+                    StatusText.Text = $"{app.Name} is already installed on this PC. Skipping.";
+                    await Task.Delay(700);
+                }
+                else
+                {
+                    var progress = new Progress<string>(s =>
+                        StatusText.Text = $"{app.Name}\n{s}\n\n(Approve the Windows prompt if it appears.)");
+                    await install.InstallAsync(app, progress, CancellationToken.None);
+                    anyInstalled = true;
+                }
+                pct += step;
+                await AnimateTo(pct, TimeSpan.FromMilliseconds(300));
             }
-            else
-            {
-                var progress = new Progress<string>(s =>
-                    StatusText.Text = $"{app.Name}\n{s}\n\n(Approve the Windows prompt if it appears.)");
-                await install.InstallAsync(app, progress, CancellationToken.None);
-                anyInstalled = true;
-            }
-            pct += step;
-            await AnimateTo(pct, TimeSpan.FromMilliseconds(300));
+            StatusText.Text = anyInstalled
+                ? "Driver updater app installed."
+                : "Your driver updater app is already installed.";
         }
-        StatusText.Text = anyInstalled
-            ? "Driver updater app installed."
-            : "Your driver updater app is already installed.";
+        catch (Exception ex)
+        {
+            StatusText.Text = $"Couldn't install the driver app: {ex.Message}\nYou can install it later from Driver Hub.";
+            await AnimateTo(100, TimeSpan.FromMilliseconds(400));
+        }
     }
 
     private void DoFinishStep()
