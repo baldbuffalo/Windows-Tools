@@ -44,6 +44,13 @@ public partial class InstallerWindow : Window
 
     private async Task GoToStep(int index)
     {
+        // Skip the driver step entirely when the app is already installed.
+        if (index == 2 && !DriverStepNeeded())
+        {
+            await GoToStep(3);
+            return;
+        }
+
         _current = index;
         for (var i = 0; i < _steps.Count; i++)
             _steps[i].State = i < index ? StepState.Done : i == index ? StepState.Active : StepState.Pending;
@@ -91,6 +98,13 @@ public partial class InstallerWindow : Window
         StatusText.Text = hardware.Count == 0
             ? "Hardware detected."
             : "Detected:\n" + string.Join("\n", hardware.Select(h => $"{h.Category}:  {h.Name}"));
+    }
+
+    private bool DriverStepNeeded()
+    {
+        if (_apps.Count == 0) return false;
+        var install = new AppInstallService(_settings);
+        return _apps.Any(a => !install.IsAppInstalled(a));
     }
 
     private async Task DoDriverStep()
