@@ -1,6 +1,8 @@
 using System.IO;
 using System.Text;
 using System.Windows;
+using System.Windows.Interop;
+using System.Windows.Media;
 using System.Windows.Threading;
 using WindowsTools.Services;
 using WindowsTools.Views;
@@ -22,6 +24,10 @@ public partial class App : Application
 
     protected override void OnStartup(StartupEventArgs e)
     {
+        // Software rendering so a graphics-driver update (GPU reset) can't crash
+        // the app while the Driver Hub updater is running.
+        RenderOptions.ProcessRenderMode = RenderMode.SoftwareOnly;
+
         base.OnStartup(e);
 
         // When launched from outside the install folder (e.g. Downloads),
