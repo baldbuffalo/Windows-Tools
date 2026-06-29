@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
+using Microsoft.Web.WebView2.Wpf;
 using WindowsTools.Services;
 using WindowsTools.ViewModels;
 
@@ -19,8 +20,25 @@ public partial class DriverHubView : UserControl
         var install = new AppInstallService(settings);
         _vm = new DriverHubViewModel(detection, install, settings);
 
-        // White (not black) while the page loads.
+        // Run the WebView with GPU acceleration OFF. Updating the graphics driver
+        // resets the GPU, which would otherwise crash the WebView's GPU process
+        // (and take the whole app down). Software rendering is immune to that.
+        WebView.CreationProperties = new CoreWebView2CreationProperties
+        {
+            AdditionalBrowserArguments = "--disable-gpu --disable-gpu-compositing"
+        };
+
         try { WebView.DefaultBackgroundColor = System.Drawing.Color.White; } catch { }
+
+        // If the web content process still fails for any reason, reload instead of dying.
+        WebView.CoreWebView2InitializationCompleted += (_, e) =>
+        {
+            if (!e.IsSuccess) return;
+            WebView.CoreWebView2.ProcessFailed += (_, _) =>
+            {
+                try { WebView.Reload(); } catch { }
+            };
+        };
 
         Loaded += OnLoaded;
         Unloaded += (_, _) => { try { WebView.Dispose(); } catch { } };
