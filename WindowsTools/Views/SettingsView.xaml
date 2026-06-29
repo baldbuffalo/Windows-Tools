@@ -70,28 +70,6 @@
 
                         <Rectangle Height="1" Fill="{StaticResource BorderBrush}" Margin="0,16"/>
 
-                        <!-- Hash comparison -->
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <StackPanel Grid.Column="0">
-                                <TextBlock Text="INSTALLED (SHA-256)" FontSize="9" FontWeight="SemiBold"
-                                           Foreground="{StaticResource TextMutedBrush}"/>
-                                <TextBlock Text="{Binding LocalHashShort}" FontSize="12"
-                                           FontFamily="Consolas"
-                                           Foreground="{StaticResource TextSecondaryBrush}" Margin="0,3,0,0"/>
-                            </StackPanel>
-                            <StackPanel Grid.Column="1">
-                                <TextBlock Text="LATEST RELEASE (SHA-256)" FontSize="9" FontWeight="SemiBold"
-                                           Foreground="{StaticResource TextMutedBrush}"/>
-                                <TextBlock Text="{Binding RemoteHashShort}" FontSize="12"
-                                           FontFamily="Consolas"
-                                           Foreground="{StaticResource TextSecondaryBrush}" Margin="0,3,0,0"/>
-                            </StackPanel>
-                        </Grid>
-
                         <!-- Status -->
                         <TextBlock Text="{Binding UpdateStatus}" FontSize="12"
                                    Foreground="{StaticResource TextMutedBrush}"
