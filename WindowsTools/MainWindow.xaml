@@ -225,11 +225,14 @@
                     </Grid>
                 </Border>
 
-                <!-- Page Content -->
+                <!-- Page Content. DriverHubView is added in code and kept alive
+                     (hidden) so its embedded site is warm before it's opened. -->
                 <Border Grid.Column="1" Background="{StaticResource BackgroundBrush}">
-                    <ContentControl x:Name="PageContent">
-                        <views:StorageView/>
-                    </ContentControl>
+                    <Grid x:Name="ContentRoot">
+                        <ContentControl x:Name="PageContent">
+                            <views:StorageView/>
+                        </ContentControl>
+                    </Grid>
                 </Border>
             </Grid>
         </Grid>

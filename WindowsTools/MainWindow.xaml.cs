@@ -11,6 +11,7 @@ namespace WindowsTools;
 public partial class MainWindow : Window
 {
     private readonly SettingsService _settings = new();
+    private readonly DriverHubView _driverHub;
     private Button? _activeNavButton;
 
     public MainWindow()
@@ -22,17 +23,16 @@ public partial class MainWindow : Window
         apps.Filter = o => o is InstalledAppEntry e && e.Category != AppCategory.DriverUpdater;
         InstalledAppsList.ItemsSource = apps;
 
+        // Create Driver Hub once and keep it in the tree (hidden) so its embedded
+        // site loads in the background and is ready the moment it's opened.
+        _driverHub = new DriverHubView(_settings) { Visibility = Visibility.Hidden };
+        ContentRoot.Children.Add(_driverHub);
+
         // When relaunched elevated to finish driver installs, open Driver Hub.
-        // Otherwise PageContent keeps its XAML default (StorageView).
         if (Environment.GetCommandLineArgs().Contains("--driverhub"))
-        {
-            SetActive(DriverHubNavButton);
-            PageContent.Content = new DriverHubView(_settings);
-        }
+            DriverHubNavButton_Click(this, new RoutedEventArgs());
         else
-        {
             SetActive(StorageNavButton);
-        }
 
         Loaded += async (_, _) => await MaybeCheckUpdatesAsync();
     }
@@ -62,19 +62,29 @@ public partial class MainWindow : Window
     private void StorageNavButton_Click(object sender, RoutedEventArgs e)
     {
         SetActive(StorageNavButton);
-        PageContent.Content = new StorageView();
+        ShowPage(new StorageView());
     }
 
     private void DriverHubNavButton_Click(object sender, RoutedEventArgs e)
     {
         SetActive(DriverHubNavButton);
-        PageContent.Content = new DriverHubView(_settings);
+        // Reveal the already-loaded Driver Hub instead of recreating it.
+        PageContent.Visibility = Visibility.Collapsed;
+        _driverHub.Visibility = Visibility.Visible;
     }
 
     private void SettingsNavButton_Click(object sender, RoutedEventArgs e)
     {
         SetActive(SettingsNavButton);
-        PageContent.Content = new SettingsView(_settings);
+        ShowPage(new SettingsView(_settings));
+    }
+
+    // Shows a normal page on top and hides the persistent Driver Hub.
+    private void ShowPage(UIElement content)
+    {
+        _driverHub.Visibility = Visibility.Hidden;
+        PageContent.Content = content;
+        PageContent.Visibility = Visibility.Visible;
     }
 
     private void TitleBar_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
