@@ -158,6 +158,15 @@
                                     </StackPanel>
                                 </Button>
 
+                                <Button x:Name="WindowsUpdateNavButton"
+                                        Style="{StaticResource NavButtonStyle}"
+                                        Click="WindowsUpdateNavButton_Click">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="🔃" FontSize="15" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Windows Update" FontSize="14" Margin="10,0,0,0" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
+
                                 <Button Style="{StaticResource NavButtonStyle}" IsEnabled="False" Opacity="0.4">
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="📊" FontSize="15" VerticalAlignment="Center"/>

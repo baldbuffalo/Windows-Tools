@@ -28,9 +28,12 @@ public partial class MainWindow : Window
         _driverHub = new DriverHubView(_settings) { Visibility = Visibility.Hidden };
         ContentRoot.Children.Add(_driverHub);
 
-        // When relaunched elevated to finish driver installs, open Driver Hub.
-        if (Environment.GetCommandLineArgs().Contains("--driverhub"))
+        // Open the right section based on how we were launched.
+        var args = Environment.GetCommandLineArgs();
+        if (args.Contains("--driverhub"))
             DriverHubNavButton_Click(this, new RoutedEventArgs());
+        else if (args.Contains("--windowsupdate")) // reopened once after a restart
+            WindowsUpdateNavButton_Click(this, new RoutedEventArgs());
         else
             SetActive(StorageNavButton);
 
@@ -71,6 +74,12 @@ public partial class MainWindow : Window
         // Reveal the already-loaded Driver Hub instead of recreating it.
         PageContent.Visibility = Visibility.Collapsed;
         _driverHub.Visibility = Visibility.Visible;
+    }
+
+    private void WindowsUpdateNavButton_Click(object sender, RoutedEventArgs e)
+    {
+        SetActive(WindowsUpdateNavButton);
+        ShowPage(new WindowsUpdateView());
     }
 
     private void SettingsNavButton_Click(object sender, RoutedEventArgs e)

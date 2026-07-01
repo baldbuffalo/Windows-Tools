@@ -51,22 +51,12 @@
                 <Border Style="{StaticResource CardStyle}">
                     <StackPanel>
                         <!-- Version -->
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <StackPanel>
-                                <TextBlock Text="Windows Tools" FontSize="15" FontWeight="SemiBold"
-                                           Foreground="{StaticResource TextPrimaryBrush}"/>
-                                <TextBlock Text="{Binding AppVersion}" FontSize="12"
-                                           Foreground="{StaticResource TextMutedBrush}" Margin="0,2,0,0"/>
-                            </StackPanel>
-                            <Button Grid.Column="1" Content="Open install folder"
-                                    Style="{StaticResource PrimaryButtonStyle}"
-                                    Command="{Binding OpenInstallFolderCommand}"
-                                    VerticalAlignment="Center"/>
-                        </Grid>
+                        <StackPanel>
+                            <TextBlock Text="Windows Tools" FontSize="15" FontWeight="SemiBold"
+                                       Foreground="{StaticResource TextPrimaryBrush}"/>
+                            <TextBlock Text="{Binding AppVersion}" FontSize="12"
+                                       Foreground="{StaticResource TextMutedBrush}" Margin="0,2,0,0"/>
+                        </StackPanel>
 
                         <Rectangle Height="1" Fill="{StaticResource BorderBrush}" Margin="0,16"/>
 

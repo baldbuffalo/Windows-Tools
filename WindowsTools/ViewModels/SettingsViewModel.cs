@@ -17,7 +17,6 @@ public class SettingsViewModel : INotifyPropertyChanged
 
         CheckCommand = new RelayCommand(async () => await CheckAsync(), () => !IsBusy);
         UpdateCommand = new RelayCommand(async () => await UpdateAsync(), () => UpdateAvailable && !IsBusy);
-        OpenInstallFolderCommand = new RelayCommand(OpenInstallFolder);
     }
 
     // --- General settings (persisted) ---
@@ -77,7 +76,6 @@ public class SettingsViewModel : INotifyPropertyChanged
 
     public RelayCommand CheckCommand { get; }
     public RelayCommand UpdateCommand { get; }
-    public RelayCommand OpenInstallFolderCommand { get; }
 
     private async Task CheckAsync()
     {
@@ -141,19 +139,6 @@ public class SettingsViewModel : INotifyPropertyChanged
             ShowProgress = false;
             IsBusy = false;
         }
-    }
-
-    private void OpenInstallFolder()
-    {
-        try
-        {
-            Process.Start(new ProcessStartInfo
-            {
-                FileName = InstallerService.InstallDir,
-                UseShellExecute = true
-            });
-        }
-        catch { }
     }
 
     private static string Shorten(string hash) =>

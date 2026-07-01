@@ -1,0 +1,43 @@
+<UserControl x:Class="WindowsTools.Views.WindowsUpdateView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Background="{StaticResource BackgroundBrush}">
+
+    <Grid Margin="32,28,32,28">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,24">
+            <TextBlock Text="Windows Update" FontSize="28" FontWeight="Bold"
+                       Foreground="{StaticResource TextPrimaryBrush}"/>
+            <TextBlock Text="Check for and install the latest Windows updates" FontSize="12"
+                       Foreground="{StaticResource TextMutedBrush}" Margin="0,4,0,0"/>
+        </StackPanel>
+
+        <!-- Card -->
+        <Border Grid.Row="1" Style="{StaticResource CardStyle}">
+            <StackPanel>
+                <TextBlock x:Name="StatusText"
+                           Text="Opening Windows Update..."
+                           FontSize="14" Foreground="{StaticResource TextSecondaryBrush}"
+                           TextWrapping="Wrap"/>
+
+                <StackPanel Orientation="Horizontal" Margin="0,18,0,0">
+                    <Button Content="Open Windows Update"
+                            Style="{StaticResource PrimaryButtonStyle}"
+                            Click="OpenUpdate_Click"/>
+                    <Button x:Name="RestartButton"
+                            Content="↻  Restart now"
+                            Style="{StaticResource PrimaryButtonStyle}"
+                            Click="Restart_Click"
+                            Margin="10,0,0,0"
+                            Visibility="Collapsed"/>
+                </StackPanel>
+            </StackPanel>
+        </Border>
+    </Grid>
+</UserControl>
