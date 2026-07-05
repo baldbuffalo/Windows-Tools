@@ -1,14 +1,21 @@
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
 using WindowsTools.Services;
 
 namespace WindowsTools.Views;
 
 public partial class WindowsUpdateView : UserControl
 {
+    private enum State { Checking, UpToDate, Available, Installing, RestartRequired }
+
+    private static readonly Brush Blue = (Brush)new BrushConverter().ConvertFromString("#FF0078D4")!;
+    private static readonly Brush Green = (Brush)new BrushConverter().ConvertFromString("#FF4CAF50")!;
+    private static readonly Brush Amber = (Brush)new BrushConverter().ConvertFromString("#FFFFB900")!;
+
     private List<WindowsUpdateItem> _updates = [];
+    private State _state;
     private bool _ran;
-    private bool _busy;
 
     public WindowsUpdateView()
     {
@@ -21,14 +28,10 @@ public partial class WindowsUpdateView : UserControl
         if (_ran) return;
         _ran = true;
 
-        // If Windows is already waiting on a restart, arm the one-time reopen so
-        // the app comes back here once the restart is done (any restart method).
         if (WindowsUpdateService.IsRebootPending())
         {
             WindowsUpdateService.ArmAutoOpen();
-            StatusText.Text = "A restart is required to finish installing updates. " +
-                              "Windows Tools will reopen here after you restart.";
-            RestartButton.Visibility = Visibility.Visible;
+            SetState(State.RestartRequired);
             return;
         }
 
@@ -36,92 +39,119 @@ public partial class WindowsUpdateView : UserControl
         await ScanAsync();
     }
 
-    private async void Scan_Click(object sender, RoutedEventArgs e) => await ScanAsync();
-
     private async Task ScanAsync()
     {
-        if (_busy) return;
-        SetBusy(true);
-        InstallButton.Visibility = Visibility.Collapsed;
-        RestartButton.Visibility = Visibility.Collapsed;
-        UpdateList.ItemsSource = null;
-        StatusText.Text = "Checking for updates...";
-
+        SetState(State.Checking);
         try
         {
             _updates = await WindowsUpdateService.ScanAsync();
             UpdateList.ItemsSource = _updates;
-            if (_updates.Count == 0)
-            {
-                StatusText.Text = "You're up to date.";
-            }
-            else
-            {
-                StatusText.Text = $"{_updates.Count} update{(_updates.Count == 1 ? "" : "s")} available.";
-                InstallButton.Visibility = Visibility.Visible;
-            }
+            SetState(_updates.Count > 0 ? State.Available : State.UpToDate);
         }
         catch (Exception ex)
         {
-            StatusText.Text = $"Couldn't check for updates: {ex.Message}";
+            SetState(State.UpToDate);
+            HeadingText.Text = "Couldn't check for updates";
+            SubText.Text = ex.Message;
         }
-
-        SetBusy(false);
     }
 
-    private async void Install_Click(object sender, RoutedEventArgs e)
+    private async Task InstallAsync()
     {
-        if (_busy || _updates.Count == 0) return;
-
-        // Installing updates requires admin — elevate and reopen here if needed.
+        // Installing requires admin — elevate and reopen here if needed.
         if (!ElevationService.IsAdministrator())
         {
             if (ElevationService.RestartAsAdmin("--windowsupdate"))
                 Application.Current.Shutdown(0);
             else
-                StatusText.Text = "Administrator rights are required to install updates.";
+                SubText.Text = "Administrator rights are required to install updates.";
             return;
         }
 
-        SetBusy(true);
-        InstallButton.Visibility = Visibility.Collapsed;
-        var progress = new Progress<string>(s => StatusText.Text = s);
+        SetState(State.Installing);
+        var progress = new Progress<string>(s => SubText.Text = s);
         var (ok, reboot, error) = await WindowsUpdateService.InstallAsync(_updates, progress);
-        SetBusy(false);
 
         if (!ok)
         {
-            StatusText.Text = $"Update failed: {error}";
-            InstallButton.Visibility = Visibility.Visible;
+            SetState(State.Available);
+            SubText.Text = $"Update failed: {error}";
             return;
         }
 
-        UpdateList.ItemsSource = null;
         _updates = [];
+        UpdateList.ItemsSource = null;
 
         if (reboot || WindowsUpdateService.IsRebootPending())
         {
             WindowsUpdateService.ArmAutoOpen();
-            StatusText.Text = "Updates installed. A restart is required to finish. " +
-                              "Windows Tools will reopen here after you restart.";
-            RestartButton.Visibility = Visibility.Visible;
+            SetState(State.RestartRequired);
         }
         else
         {
-            StatusText.Text = "Updates installed successfully.";
+            SetState(State.UpToDate);
+            HeadingText.Text = "Updates installed";
         }
     }
 
-    private void Restart_Click(object sender, RoutedEventArgs e)
+    private async void Action_Click(object sender, RoutedEventArgs e)
     {
-        WindowsUpdateService.ArmAutoOpen();
-        WindowsUpdateService.RestartNow();
+        switch (_state)
+        {
+            case State.UpToDate: await ScanAsync(); break;
+            case State.Available: await InstallAsync(); break;
+            case State.RestartRequired:
+                WindowsUpdateService.ArmAutoOpen();
+                WindowsUpdateService.RestartNow();
+                break;
+        }
     }
 
-    private void SetBusy(bool busy)
+    private void SetState(State state)
     {
-        _busy = busy;
-        ScanButton.IsEnabled = !busy;
-        ScanButton.Opacity = busy ? 0.5 : 1.0;
+        _state = state;
+        ListHeader.Visibility = state == State.Available ? Visibility.Visible : Visibility.Collapsed;
+
+        switch (state)
+        {
+            case State.Checking:
+                StatusGlyph.Text = "↻"; StatusIcon.Background = Blue;
+                HeadingText.Text = "Checking for updates...";
+                SubText.Text = "";
+                ActionButton.Visibility = Visibility.Collapsed;
+                break;
+
+            case State.UpToDate:
+                StatusGlyph.Text = "✓"; StatusIcon.Background = Green;
+                HeadingText.Text = "You're up to date";
+                SubText.Text = $"Last checked: today, {DateTime.Now:t}";
+                ActionButton.Content = "Check for updates";
+                ActionButton.Visibility = Visibility.Visible;
+                break;
+
+            case State.Available:
+                StatusGlyph.Text = "⬇"; StatusIcon.Background = Blue;
+                HeadingText.Text = $"{_updates.Count} update{(_updates.Count == 1 ? "" : "s")} available";
+                SubText.Text = "Updates are ready to download and install.";
+                ActionButton.Content = "Download & install";
+                ActionButton.Visibility = Visibility.Visible;
+                break;
+
+            case State.Installing:
+                StatusGlyph.Text = "⬇"; StatusIcon.Background = Blue;
+                HeadingText.Text = "Installing updates...";
+                SubText.Text = "Downloading updates...";
+                ActionButton.Visibility = Visibility.Collapsed;
+                break;
+
+            case State.RestartRequired:
+                StatusGlyph.Text = "↻"; StatusIcon.Background = Amber;
+                HeadingText.Text = "Restart required";
+                SubText.Text = "A restart is required to finish installing updates. " +
+                               "Windows Tools will reopen here after you restart.";
+                ActionButton.Content = "Restart now";
+                ActionButton.Visibility = Visibility.Visible;
+                break;
+        }
     }
 }
