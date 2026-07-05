@@ -84,11 +84,12 @@ public class EmbeddedWindowHost : HwndHost
     {
         await Task.Run(_launch);
 
+        // Poll quickly so the window is captured before it's noticeably visible.
         var h = IntPtr.Zero;
-        for (var i = 0; i < 150 && h == IntPtr.Zero; i++)
+        for (var i = 0; i < 200 && h == IntPtr.Zero; i++)
         {
             h = _find();
-            if (h == IntPtr.Zero) await Task.Delay(150);
+            if (h == IntPtr.Zero) await Task.Delay(50);
         }
         if (h == IntPtr.Zero) return;
 
