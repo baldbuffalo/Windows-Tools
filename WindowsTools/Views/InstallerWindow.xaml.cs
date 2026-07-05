@@ -35,8 +35,11 @@ public partial class InstallerWindow : Window
         if (_busy) return;
         if (_current >= _steps.Count - 1)
         {
-            InstallerService.LaunchInstalled();
-            Application.Current.Shutdown(0);
+            // The install is done. Instead of cold-starting the installed exe
+            // (a few seconds), just open the main window in this already-warm
+            // process. Future launches use the installed copy + desktop shortcut.
+            new MainWindow().Show();
+            Close();
             return;
         }
         await GoToStep(_current + 1);
