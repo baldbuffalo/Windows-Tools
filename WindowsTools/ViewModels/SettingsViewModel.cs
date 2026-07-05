@@ -128,9 +128,16 @@ public class SettingsViewModel : INotifyPropertyChanged
         if (path is not null)
         {
             DownloadProgress = 100;
-            UpdateStatus = "Download complete. Launching installer...";
-            // Launch off the UI thread — ShellExecute of the new exe can block briefly.
-            await Task.Run(() => Process.Start(new ProcessStartInfo { FileName = path, UseShellExecute = true }));
+            UpdateStatus = "Download complete. Opening installer...";
+            // Hand off to Explorer so the call returns instantly (no blocking on
+            // Defender scan / first-run extraction of the new exe) and we can
+            // close immediately instead of hanging on "Launching installer...".
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = "explorer.exe",
+                Arguments = $"\"{path}\"",
+                UseShellExecute = false
+            });
             Application.Current.Shutdown(0);
         }
         else
