@@ -9,10 +9,12 @@ namespace WindowsTools.ViewModels;
 public class SettingsViewModel : INotifyPropertyChanged
 {
     private readonly SettingsService _settings;
+    private readonly WindowsSettingsService _windowsSettings;
 
-    public SettingsViewModel(SettingsService settings)
+    public SettingsViewModel(SettingsService settings, WindowsSettingsService windowsSettings)
     {
         _settings = settings;
+        _windowsSettings = windowsSettings;
         LocalHash = UpdateService.GetLocalSha256();
 
         CheckCommand = new RelayCommand(async () => await CheckAsync(), () => !IsBusy);
@@ -105,6 +107,12 @@ public class SettingsViewModel : INotifyPropertyChanged
     {
         if (_downloadUrl is null) return;
 
+        // Close any Settings/other external window opened by Windows Tools
+        // before touching the installed application files. This prevents the
+        // updater from failing with "file is being used by another process".
+        _windowsSettings.CloseExternalWindows();
+        await Task.Delay(150);
+
         IsBusy = true;
         ShowProgress = true;
         DownloadProgress = 0;
@@ -113,8 +121,7 @@ public class SettingsViewModel : INotifyPropertyChanged
         var lastPercent = -1;
         var progress = new Progress<double>(p =>
         {
-            // Reserve 1% for the final installer-ready step. This prevents the
-            // UI from showing 100% while the downloaded file is still being closed.
+            // Reserve 1% for the final installer-ready step.
             var display = Math.Min(99, (int)Math.Floor(p));
             DownloadProgress = display;
             if (display != lastPercent)
@@ -128,8 +135,6 @@ public class SettingsViewModel : INotifyPropertyChanged
 
         if (path is not null)
         {
-            // The download is complete and the file handle has been closed.
-            // Only now expose 100% and hand the installer off.
             DownloadProgress = 100;
             UpdateStatus = "Update ready. Starting installer...";
             await Task.Delay(350);
@@ -141,7 +146,6 @@ public class SettingsViewModel : INotifyPropertyChanged
                 UseShellExecute = false
             });
 
-            // The installer now owns the update process.
             Application.Current.Shutdown(0);
         }
         else
