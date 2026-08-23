@@ -76,10 +76,6 @@ public partial class MainWindow : Window
     private void WindowsUpdateNavButton_Click(object sender, RoutedEventArgs e)
     {
         SetActive(WindowsUpdateNavButton);
-
-        // Change the Windows Tools page FIRST. This prevents the previous page
-        // (for example Storage or Settings) from remaining visible while the
-        // native Windows Settings window is opened.
         ShowPage(new WindowsUpdateView());
         Dispatcher.BeginInvoke(() => _windowsSettings.OpenWindowsUpdate());
     }
@@ -87,7 +83,7 @@ public partial class MainWindow : Window
     private void SettingsNavButton_Click(object sender, RoutedEventArgs e)
     {
         SetActive(SettingsNavButton);
-        ShowPage(new SettingsView(_settings));
+        ShowPage(new SettingsView(_settings, _windowsSettings));
     }
 
     private void ShowPage(UIElement content)
