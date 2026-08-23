@@ -76,8 +76,10 @@ public partial class MainWindow : Window
     private void WindowsUpdateNavButton_Click(object sender, RoutedEventArgs e)
     {
         SetActive(WindowsUpdateNavButton);
-        ShowPage(new WindowsUpdateView());
-        Dispatcher.BeginInvoke(() => _windowsSettings.OpenWindowsUpdate());
+
+        // Show a simple launch/status page in Windows Tools. The actual Windows
+        // Update experience remains entirely in Windows Settings.
+        ShowPage(new WindowsUpdateView(() => _windowsSettings.OpenWindowsUpdate()));
     }
 
     private void SettingsNavButton_Click(object sender, RoutedEventArgs e)
