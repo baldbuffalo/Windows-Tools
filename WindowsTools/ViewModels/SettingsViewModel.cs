@@ -19,7 +19,6 @@ public class SettingsViewModel : INotifyPropertyChanged
         UpdateCommand = new RelayCommand(async () => await UpdateAsync(), () => UpdateAvailable && !IsBusy);
     }
 
-    // --- General settings (persisted) ---
     public bool CheckUpdatesOnStartup
     {
         get => _settings.CheckUpdatesOnStartup;
@@ -32,7 +31,6 @@ public class SettingsViewModel : INotifyPropertyChanged
         set { _settings.AutoInstallDrivers = value; OnPropertyChanged(); }
     }
 
-    // --- About / update info ---
     public string AppVersion => "v1.0.0";
     public string InstallPath => InstallerService.InstallExePath;
 
@@ -115,29 +113,35 @@ public class SettingsViewModel : INotifyPropertyChanged
         var lastPercent = -1;
         var progress = new Progress<double>(p =>
         {
-            DownloadProgress = p;
-            var whole = (int)p;
-            if (whole != lastPercent) // throttle UI churn to once per percent
+            // Reserve 1% for the final installer-ready step. This prevents the
+            // UI from showing 100% while the downloaded file is still being closed.
+            var display = Math.Min(99, (int)Math.Floor(p));
+            DownloadProgress = display;
+            if (display != lastPercent)
             {
-                lastPercent = whole;
-                UpdateStatus = $"Downloading update... {whole}%";
+                lastPercent = display;
+                UpdateStatus = $"Downloading update... {display}%";
             }
         });
+
         var (path, error) = await UpdateService.DownloadInstallerAsync(_downloadUrl, progress);
 
         if (path is not null)
         {
+            // The download is complete and the file handle has been closed.
+            // Only now expose 100% and hand the installer off.
             DownloadProgress = 100;
-            UpdateStatus = "Download complete. Opening installer...";
-            // Hand off to Explorer so the call returns instantly (no blocking on
-            // Defender scan / first-run extraction of the new exe) and we can
-            // close immediately instead of hanging on "Launching installer...".
+            UpdateStatus = "Update ready. Starting installer...";
+            await Task.Delay(350);
+
             Process.Start(new ProcessStartInfo
             {
                 FileName = "explorer.exe",
                 Arguments = $"\"{path}\"",
                 UseShellExecute = false
             });
+
+            // The installer now owns the update process.
             Application.Current.Shutdown(0);
         }
         else
