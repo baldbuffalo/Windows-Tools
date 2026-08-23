@@ -35,9 +35,6 @@ public partial class InstallerWindow : Window
         if (_busy) return;
         if (_current >= _steps.Count - 1)
         {
-            // The installer may be elevated because Program Files requires admin.
-            // Launch the installed app through Explorer so the normal app does not
-            // remain elevated after installation.
             InstallerService.LaunchInstalled();
             Application.Current.Shutdown(0);
             return;
@@ -75,33 +72,31 @@ public partial class InstallerWindow : Window
 
     private async Task DoInstallStep()
     {
-        StepTitle.Text = "Installing application";
+        StepTitle.Text = "Installing Windows Tools";
 
-        // Program Files is protected. Elevate only the one-time installer,
-        // rather than requiring every normal launch of Windows Tools to be admin.
         if (!ElevationService.IsAdministrator())
         {
-            StatusText.Text = "Administrator permission is required to install Windows Tools to Program Files...";
+            StatusText.Text = "Installing Windows Tools";
             if (ElevationService.RestartAsAdmin("--installer"))
             {
                 Application.Current.Shutdown(0);
                 return;
             }
 
-            StatusText.Text = "Installation was cancelled because administrator permission was not granted.";
+            StatusText.Text = "Windows Tools could not be installed";
             await AnimateTo(100, TimeSpan.FromMilliseconds(400));
             return;
         }
 
-        StatusText.Text = "Installing Windows Tools to Program Files and creating shortcuts...";
+        StatusText.Text = "Installing Windows Tools";
         var copied = await Task.Run(InstallerService.CopyExe);
         if (copied)
             await Task.Run(InstallerService.CreateShortcuts);
 
         await AnimateTo(100, TimeSpan.FromMilliseconds(600));
         StatusText.Text = copied
-            ? "Windows Tools was installed to Program Files and shortcuts were created."
-            : "Couldn't install Windows Tools to Program Files. Check administrator permissions and try again.";
+            ? "Windows Tools installed"
+            : "Windows Tools could not be installed";
     }
 
     private async Task DoDetectStep()
