@@ -4,18 +4,16 @@ using System.IO;
 namespace WindowsTools.Services;
 
 /// <summary>
-/// Makes the single self-contained exe behave like an installer.
-/// On first run (from Downloads, USB, etc.) it copies itself into a permanent
-/// per-user install folder, drops a desktop shortcut, and relaunches the
-/// installed copy. Running the already-installed copy is a no-op.
+/// Installs Windows Tools as a normal machine-wide Windows application.
+/// The installed executable lives under Program Files rather than AppData or Temp.
 /// </summary>
 public static class InstallerService
 {
     public const string AppDisplayName = "Windows Tools";
 
     public static string InstallDir => Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-        "Programs", "WindowsTools");
+        Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles),
+        "Windows Tools");
 
     public static string InstallExePath => Path.Combine(InstallDir, "WindowsTools.exe");
 
@@ -27,7 +25,7 @@ public static class InstallerService
         Environment.GetFolderPath(Environment.SpecialFolder.Programs),
         AppDisplayName + ".lnk");
 
-    /// <summary>True when the running exe lives in the install folder.</summary>
+    /// <summary>True when the running exe lives in the Program Files install folder.</summary>
     public static bool IsRunningInstalled()
     {
         var current = Environment.ProcessPath;
@@ -36,10 +34,7 @@ public static class InstallerService
                    StringComparison.OrdinalIgnoreCase);
     }
 
-    /// <summary>
-    /// Copies this exe into the permanent install folder.
-    /// Returns true on success.
-    /// </summary>
+    /// <summary>Copies the executable into the Program Files installation directory.</summary>
     public static bool CopyExe()
     {
         var source = Environment.ProcessPath
@@ -48,8 +43,6 @@ public static class InstallerService
 
         try { Directory.CreateDirectory(InstallDir); } catch { return false; }
 
-        // When updating, the previous installed exe may still be running and lock
-        // the target — retry briefly until it exits and the file is free.
         for (var attempt = 0; attempt < 12; attempt++)
         {
             try
@@ -70,20 +63,17 @@ public static class InstallerService
                 return false;
             }
         }
+
         return false;
     }
 
-    /// <summary>Creates the desktop and Start Menu shortcuts.</summary>
+    /// <summary>Creates desktop and Start Menu shortcuts pointing at Program Files.</summary>
     public static void CreateShortcuts()
     {
         CreateShortcut(DesktopShortcutPath, InstallExePath);
         CreateShortcut(StartMenuShortcutPath, InstallExePath);
     }
 
-    /// <summary>
-    /// Convenience: copy + shortcuts in one call (used as a silent fallback).
-    /// Returns the installed exe path on success, null on failure.
-    /// </summary>
     public static string? Install()
     {
         if (!CopyExe()) return null;
@@ -91,7 +81,6 @@ public static class InstallerService
         return InstallExePath;
     }
 
-    /// <summary>Removes leftover files from a previous in-place update.</summary>
     public static void CleanupOldVersion()
     {
         foreach (var name in new[] { "WindowsTools.old.exe", "WindowsTools.new.exe" })
@@ -105,14 +94,16 @@ public static class InstallerService
         }
     }
 
-    /// <summary>Launches the installed copy in a new process.</summary>
     public static void LaunchInstalled()
     {
+        // Use Explorer to launch the installed copy from the normal shell context.
+        // This prevents the elevated installer process from unnecessarily keeping
+        // the main application elevated.
         Process.Start(new ProcessStartInfo
         {
-            FileName = InstallExePath,
-            WorkingDirectory = InstallDir,
-            UseShellExecute = true
+            FileName = "explorer.exe",
+            Arguments = $"\"{InstallExePath}\"",
+            UseShellExecute = false
         });
     }
 
@@ -121,7 +112,6 @@ public static class InstallerService
         try
         {
             var workingDir = Path.GetDirectoryName(targetExe) ?? InstallDir;
-            // Use WScript.Shell via PowerShell — no extra dependencies needed.
             var script =
                 "$w = New-Object -ComObject WScript.Shell; " +
                 $"$s = $w.CreateShortcut('{shortcutPath.Replace("'", "''")}'); " +
