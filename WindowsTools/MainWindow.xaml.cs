@@ -19,17 +19,13 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
 
-        // Sidebar lists only OEM-suite apps. Driver updater apps live in Driver Hub.
         var apps = CollectionViewSource.GetDefaultView(_settings.InstalledApps);
         apps.Filter = o => o is InstalledAppEntry e && e.Category != AppCategory.DriverUpdater;
         InstalledAppsList.ItemsSource = apps;
 
-        // Create Driver Hub once and keep it in the tree (hidden) so its embedded
-        // site loads in the background and is ready the moment it's opened.
         _driverHub = new DriverHubView(_settings) { Visibility = Visibility.Hidden };
         ContentRoot.Children.Add(_driverHub);
 
-        // Open the right section based on how we were launched.
         var args = Environment.GetCommandLineArgs();
         if (args.Contains("--driverhub"))
             DriverHubNavButton_Click(this, new RoutedEventArgs());
@@ -73,7 +69,6 @@ public partial class MainWindow : Window
     private void DriverHubNavButton_Click(object sender, RoutedEventArgs e)
     {
         SetActive(DriverHubNavButton);
-        // Reveal the already-loaded Driver Hub instead of recreating it.
         PageContent.Visibility = Visibility.Collapsed;
         _driverHub.Visibility = Visibility.Visible;
     }
@@ -81,10 +76,12 @@ public partial class MainWindow : Window
     private void WindowsUpdateNavButton_Click(object sender, RoutedEventArgs e)
     {
         SetActive(WindowsUpdateNavButton);
-        // Open the real Windows Update page in Windows Settings. The temporary
-        // Settings window is automatically closed if the user navigates away
-        // from Windows Update (for example, to Apps).
-        _windowsSettings.OpenWindowsUpdate();
+
+        // Change the Windows Tools page FIRST. This prevents the previous page
+        // (for example Storage or Settings) from remaining visible while the
+        // native Windows Settings window is opened.
+        ShowPage(new WindowsUpdateView());
+        Dispatcher.BeginInvoke(() => _windowsSettings.OpenWindowsUpdate());
     }
 
     private void SettingsNavButton_Click(object sender, RoutedEventArgs e)
@@ -93,7 +90,6 @@ public partial class MainWindow : Window
         ShowPage(new SettingsView(_settings));
     }
 
-    // Shows a normal page on top and hides the persistent Driver Hub.
     private void ShowPage(UIElement content)
     {
         _driverHub.Visibility = Visibility.Hidden;
