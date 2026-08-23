@@ -11,6 +11,7 @@ namespace WindowsTools;
 public partial class MainWindow : Window
 {
     private readonly SettingsService _settings = new();
+    private readonly WindowsSettingsService _windowsSettings = new();
     private readonly DriverHubView _driverHub;
     private Button? _activeNavButton;
 
@@ -32,12 +33,13 @@ public partial class MainWindow : Window
         var args = Environment.GetCommandLineArgs();
         if (args.Contains("--driverhub"))
             DriverHubNavButton_Click(this, new RoutedEventArgs());
-        else if (args.Contains("--windowsupdate")) // reopened once after a restart
+        else if (args.Contains("--windowsupdate"))
             WindowsUpdateNavButton_Click(this, new RoutedEventArgs());
         else
             SetActive(StorageNavButton);
 
         Loaded += async (_, _) => await MaybeCheckUpdatesAsync();
+        Closed += (_, _) => _windowsSettings.Dispose();
     }
 
     private async Task MaybeCheckUpdatesAsync()
@@ -79,7 +81,10 @@ public partial class MainWindow : Window
     private void WindowsUpdateNavButton_Click(object sender, RoutedEventArgs e)
     {
         SetActive(WindowsUpdateNavButton);
-        ShowPage(new WindowsUpdateView());
+        // Open the real Windows Update page in Windows Settings. The temporary
+        // Settings window is automatically closed if the user navigates away
+        // from Windows Update (for example, to Apps).
+        _windowsSettings.OpenWindowsUpdate();
     }
 
     private void SettingsNavButton_Click(object sender, RoutedEventArgs e)
