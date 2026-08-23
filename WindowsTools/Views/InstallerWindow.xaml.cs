@@ -35,11 +35,11 @@ public partial class InstallerWindow : Window
         if (_busy) return;
         if (_current >= _steps.Count - 1)
         {
-            // The install is done. Instead of cold-starting the installed exe
-            // (a few seconds), just open the main window in this already-warm
-            // process. Future launches use the installed copy + desktop shortcut.
-            new MainWindow().Show();
-            Close();
+            // The installer may be elevated because Program Files requires admin.
+            // Launch the installed app through Explorer so the normal app does not
+            // remain elevated after installation.
+            InstallerService.LaunchInstalled();
+            Application.Current.Shutdown(0);
             return;
         }
         await GoToStep(_current + 1);
@@ -47,7 +47,6 @@ public partial class InstallerWindow : Window
 
     private async Task GoToStep(int index)
     {
-        // Skip the driver step entirely when the app is already installed.
         if (index == 2 && !DriverStepNeeded())
         {
             await GoToStep(3);
@@ -77,13 +76,32 @@ public partial class InstallerWindow : Window
     private async Task DoInstallStep()
     {
         StepTitle.Text = "Installing application";
-        StatusText.Text = "Copying Windows Tools and creating a desktop shortcut...";
+
+        // Program Files is protected. Elevate only the one-time installer,
+        // rather than requiring every normal launch of Windows Tools to be admin.
+        if (!ElevationService.IsAdministrator())
+        {
+            StatusText.Text = "Administrator permission is required to install Windows Tools to Program Files...";
+            if (ElevationService.RestartAsAdmin("--installer"))
+            {
+                Application.Current.Shutdown(0);
+                return;
+            }
+
+            StatusText.Text = "Installation was cancelled because administrator permission was not granted.";
+            await AnimateTo(100, TimeSpan.FromMilliseconds(400));
+            return;
+        }
+
+        StatusText.Text = "Installing Windows Tools to Program Files and creating shortcuts...";
         var copied = await Task.Run(InstallerService.CopyExe);
-        await Task.Run(InstallerService.CreateShortcuts);
+        if (copied)
+            await Task.Run(InstallerService.CreateShortcuts);
+
         await AnimateTo(100, TimeSpan.FromMilliseconds(600));
         StatusText.Text = copied
-            ? "Windows Tools was installed and a desktop shortcut was created."
-            : "Couldn't copy to the install folder — the app will run in place.";
+            ? "Windows Tools was installed to Program Files and shortcuts were created."
+            : "Couldn't install Windows Tools to Program Files. Check administrator permissions and try again.";
     }
 
     private async Task DoDetectStep()
