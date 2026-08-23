@@ -6,14 +6,15 @@ using System.Windows.Threading;
 namespace WindowsTools.Services;
 
 /// <summary>
-/// Opens Windows Settings directly on Windows Update and closes that Settings
-/// window when the user navigates to a different Settings page.
+/// Tracks external Settings windows opened by Windows Tools so they can be
+/// closed before the application starts its own installer.
 /// </summary>
 public sealed class WindowsSettingsService : IDisposable
 {
     private const int WM_CLOSE = 0x0010;
 
     private readonly DispatcherTimer _timer;
+    private readonly HashSet<IntPtr> _ownedExternalWindows = new();
     private IntPtr _settingsWindow;
     private bool _disposed;
 
@@ -34,7 +35,26 @@ public sealed class WindowsSettingsService : IDisposable
             UseShellExecute = true
         });
 
+        // Give Settings a moment to create its host window, then track it.
         _timer.Start();
+    }
+
+    /// <summary>
+    /// Closes every external window that Windows Tools has opened and is
+    /// currently tracking. This must be called before launching our updater so
+    /// an external Settings window cannot keep the application files in use.
+    /// </summary>
+    public void CloseExternalWindows()
+    {
+        foreach (var hWnd in _ownedExternalWindows.ToArray())
+        {
+            if (IsWindow(hWnd))
+                CloseWindow(hWnd);
+        }
+
+        _ownedExternalWindows.Clear();
+        _settingsWindow = IntPtr.Zero;
+        _timer.Stop();
     }
 
     private void CheckSettingsPage(object? sender, EventArgs e)
@@ -42,11 +62,14 @@ public sealed class WindowsSettingsService : IDisposable
         if (_settingsWindow == IntPtr.Zero)
         {
             _settingsWindow = FindSettingsWindow();
+            if (_settingsWindow != IntPtr.Zero)
+                _ownedExternalWindows.Add(_settingsWindow);
             return;
         }
 
         if (!IsWindow(_settingsWindow))
         {
+            _ownedExternalWindows.Remove(_settingsWindow);
             StopWatching();
             return;
         }
@@ -60,6 +83,7 @@ public sealed class WindowsSettingsService : IDisposable
             if (!IsWindowsUpdateSelected(root))
             {
                 CloseWindow(_settingsWindow);
+                _ownedExternalWindows.Remove(_settingsWindow);
                 StopWatching();
             }
         }
@@ -84,7 +108,6 @@ public sealed class WindowsSettingsService : IDisposable
                 return ((SelectionItemPattern)pattern).Current.IsSelected;
         }
 
-        // Keep waiting while Settings is still loading its navigation tree.
         return true;
     }
 
@@ -142,7 +165,7 @@ public sealed class WindowsSettingsService : IDisposable
     {
         if (_disposed) return;
         _disposed = true;
-        StopWatching();
+        CloseExternalWindows();
         _timer.Tick -= CheckSettingsPage;
     }
 
