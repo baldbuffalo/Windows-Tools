@@ -6,9 +6,9 @@ namespace WindowsTools.Views;
 
 public partial class SettingsView : UserControl
 {
-    public SettingsView(SettingsService settings)
+    public SettingsView(SettingsService settings, WindowsSettingsService windowsSettings)
     {
         InitializeComponent();
-        DataContext = new SettingsViewModel(settings);
+        DataContext = new SettingsViewModel(settings, windowsSettings);
     }
 }
