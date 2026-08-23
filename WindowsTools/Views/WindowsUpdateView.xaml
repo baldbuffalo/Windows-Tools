@@ -7,74 +7,35 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <!-- Title -->
         <TextBlock Grid.Row="0" Text="Windows Update" FontSize="28" FontWeight="Bold"
                    Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,20"/>
 
-        <!-- Hero status card (mimics the Settings Windows Update banner) -->
         <Border Grid.Row="1" Background="{StaticResource CardBrush}" CornerRadius="8" Padding="20,18">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
                 <Border x:Name="StatusIcon" Width="48" Height="48" CornerRadius="24"
                         Background="{StaticResource AccentBrush}" VerticalAlignment="Center">
-                    <TextBlock x:Name="StatusGlyph" Text="↻" FontSize="24" Foreground="White"
+                    <TextBlock x:Name="StatusGlyph" Text="↗" FontSize="24" Foreground="White"
                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Border>
 
                 <StackPanel Grid.Column="1" Margin="16,0,12,0" VerticalAlignment="Center">
-                    <TextBlock x:Name="HeadingText" Text="Checking for updates..."
+                    <TextBlock x:Name="HeadingText" Text="Launching Windows Update..."
                                FontSize="18" FontWeight="SemiBold"
                                Foreground="{StaticResource TextPrimaryBrush}"/>
-                    <TextBlock x:Name="SubText" Text=""
+                    <TextBlock x:Name="SubText"
+                               Text="Opening Windows Settings. Windows Update will be managed there."
                                FontSize="12" Foreground="{StaticResource TextMutedBrush}"
                                Margin="0,3,0,0" TextWrapping="Wrap"/>
                 </StackPanel>
-
-                <Button x:Name="ActionButton" Grid.Column="2" Content="Check for updates"
-                        Style="{StaticResource PrimaryButtonStyle}"
-                        Click="Action_Click" VerticalAlignment="Center"
-                        Visibility="Collapsed"/>
             </Grid>
         </Border>
-
-        <!-- Available updates label -->
-        <TextBlock x:Name="ListHeader" Grid.Row="2" Text="Available updates"
-                   FontSize="13" FontWeight="SemiBold"
-                   Foreground="{StaticResource TextSecondaryBrush}"
-                   Margin="4,22,0,10" Visibility="Collapsed"/>
-
-        <!-- Update list -->
-        <ScrollViewer Grid.Row="3" VerticalScrollBarVisibility="Auto">
-            <ItemsControl x:Name="UpdateList">
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate>
-                        <Border Background="{StaticResource CardBrush}" CornerRadius="8"
-                                Padding="16,14" Margin="0,0,0,8">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                </Grid.ColumnDefinitions>
-                                <TextBlock Text="{Binding Title}" FontSize="13"
-                                           Foreground="{StaticResource TextPrimaryBrush}"
-                                           TextWrapping="Wrap" VerticalAlignment="Center"/>
-                                <TextBlock Grid.Column="1" Text="{Binding SizeText}" FontSize="12"
-                                           Foreground="{StaticResource TextMutedBrush}"
-                                           VerticalAlignment="Center" Margin="12,0,0,0"/>
-                            </Grid>
-                        </Border>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
-        </ScrollViewer>
     </Grid>
 </UserControl>
