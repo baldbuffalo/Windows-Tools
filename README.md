@@ -1,43 +1,25 @@
 # Windows Tools
 
-A modern, all-in-one Windows system utility app built with WPF (.NET 8).
+Windows Tools is a Windows desktop utility built with WinUI 3 (Windows App SDK).
+
+## Download
+
+Get WindowsTools.exe from the latest release: https://github.com/baldbuffalo/Windows-Tools/releases/tag/latest
+
+It is an unpackaged, self-contained single-file executable. No MSIX installation or separate .NET / Windows App SDK runtime installation is required. Dependencies are extracted to a temporary directory on first launch.
+
+On first run, you can install it under Program Files and create desktop / Start menu shortcuts, or run it directly without installing.
 
 ## Features
 
-### ✅ Storage Checker
-- View all drives (fixed, removable, network, CD/DVD)
-- See used vs free space with a color-coded progress bar
-  - 🟢 Green: under 75% used
-  - 🟡 Yellow: 75–90% used
-  - 🔴 Red: over 90% used
-- Summary cards for total / used / free across all fixed drives
-- One-click refresh
-
-### 🔜 Coming Soon
-- Performance Monitor (CPU, RAM, GPU)
-- Privacy Settings
-- Network Info
-- Process Manager
-
-## Requirements
-
-- Windows 10 or later (x64)
-- [.NET 8 Runtime](https://dotnet.microsoft.com/download/dotnet/8.0)
+- Storage: inspect drive capacity, free space, and usage.
+- Driver Hub: detect CPU, GPU, and system manufacturer; open manufacturer support pages or install matched tools with winget.
+- Windows Update: open Windows Update in Windows Settings.
+- Settings: configure startup update checks and check the latest release.
 
 ## Build
 
-```bash
-# Restore and build
-dotnet build WindowsTools.sln -c Release
+Build on Windows with the .NET 8 SDK using:
+dotnet publish WindowsTools.WinUI/WindowsTools.WinUI.csproj -c Release -r win-x64 --self-contained true -o ./output
 
-# Run directly
-dotnet run --project WindowsTools/WindowsTools.csproj
-```
-
-Or open `WindowsTools.sln` in Visual Studio 2022+.
-
-## Tech Stack
-
-- **WPF** (.NET 8, `net8.0-windows`)
-- **MVVM** pattern (INotifyPropertyChanged, no third-party framework)
-- Dark theme with custom control templates
+The previous WPF implementation remains in WindowsTools/ for reference during the migration. Release builds now use the WinUI 3 project in WindowsTools.WinUI/.

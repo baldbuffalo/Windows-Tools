@@ -1,0 +1,38 @@
+using System.Text.Json.Serialization;
+
+namespace WindowsTools.Models;
+
+public enum AppCategory { DriverUpdater, OemSuite }
+
+public class HardwareInfo
+{
+    public string Category { get; set; } = string.Empty;
+    public string Icon { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
+    public string Detail { get; set; } = string.Empty;
+}
+
+public class ManufacturerApp
+{
+    public AppCategory Category { get; set; } = AppCategory.OemSuite;
+    public string Id { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
+    public string Manufacturer { get; set; } = string.Empty;
+    public string Icon { get; set; } = "🖥";
+    public string Description { get; set; } = string.Empty;
+    public string WingetId { get; set; } = string.Empty;
+    public string[] ExeSearchPaths { get; set; } = [];
+    public string? ShellLaunchArg { get; set; }
+    public string? DownloadPageUrl { get; set; }
+    public string? EmbedUrl { get; set; }
+}
+
+public class InstalledAppEntry
+{
+    public string Id { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
+    public string Icon { get; set; } = string.Empty;
+    public string? LaunchPath { get; set; }
+    public string? ShellLaunchArg { get; set; }
+    public AppCategory Category { get; set; } = AppCategory.OemSuite;
+}

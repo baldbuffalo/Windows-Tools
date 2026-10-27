@@ -21,14 +21,9 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
-      - name: Publish
-        run: |
-          dotnet publish WindowsTools/WindowsTools.csproj `
-            -c Release `
-            -r win-x64 `
-            --self-contained true `
-            /p:PublishReadyToRun=true `
-            -o ./output
+      - name: Publish WinUI 3 single-file app
+        shell: pwsh
+        run: dotnet publish WindowsTools.WinUI/WindowsTools.WinUI.csproj -c Release -r win-x64 --self-contained true /p:PublishReadyToRun=true -o ./output
 
       - name: Move latest tag
         shell: bash
@@ -56,13 +51,14 @@ jobs:
           files: ./output/WindowsTools.exe
           generate_release_notes: false
           body: |
-            ## Windows Tools
+            ## Windows Tools — WinUI 3
 
-            Self-contained single EXE — no .NET install required, no extraction needed.
+            Self-contained, unpackaged single EXE. No MSIX or separate .NET / Windows App SDK runtime installation is required. Dependencies are extracted to a temporary directory on first launch.
 
-            **Install:** download `WindowsTools.exe` and run it. It installs itself
-            and adds a **shortcut to your desktop**, then opens automatically.
+            **Install:** download WindowsTools.exe and run it. Choose Install to copy it to Program Files and create desktop / Start menu shortcuts, or run it without installing.
 
             **Features:**
-            - Storage Checker: view all drives, used/free space, color-coded usage bars
-            - Driver Hub: auto-detects CPU/GPU/OEM and installs manufacturer apps silently
+            - Storage: view drive capacity, used/free space, and usage bars
+            - Driver Hub: detect CPU/GPU/OEM and open or install manufacturer tools
+            - Windows Update: open Windows Update in Settings
+            - Settings: startup update checks and application update lookup
