@@ -23,7 +23,20 @@ jobs:
 
       - name: Publish WinUI 3 single-file app
         shell: pwsh
-        run: dotnet publish WindowsTools.WinUI/WindowsTools.WinUI.csproj -c Release -r win-x64 --self-contained true /p:PublishReadyToRun=true -o ./output
+        run: dotnet publish WindowsTools.WinUI/WindowsTools.WinUI.csproj -c Release -r win-x64 --self-contained true /p:PublishReadyToRun=true /p:IncludeNativeLibrariesForSelfExtract=true -o ./output
+
+      - name: Verify single-EXE publish
+        shell: pwsh
+        run: |
+          $exe = Get-Item "./output/WindowsTools.exe" -ErrorAction Stop
+          if ($exe.Length -lt 100MB) {
+            throw "WindowsTools.exe is unexpectedly small ($($exe.Length) bytes)."
+          }
+          $looseDlls = Get-ChildItem "./output" -Filter "*.dll" -File
+          if ($looseDlls.Count -gt 0) {
+            $names = ($looseDlls | ForEach-Object { $_.Name }) -join ", "
+            throw "Single-file publish left external DLLs: $names"
+          }
 
       - name: Move latest tag
         shell: bash
